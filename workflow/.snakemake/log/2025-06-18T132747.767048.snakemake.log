@@ -1,0 +1,935 @@
+Config file config/config.yaml is extended by additional config specified via the command line.
+Config file config/config.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                  count
+---------------------------------  -------
+add_carbon                               3
+calculate_outcome_distrs                 3
+calculate_outcomes                       3
+collapse_train_test_data                 1
+collect_tabulated_molecules              3
+create_training_sets                     3
+forecast                                 1
+freq_distribution                        3
+nn_tc_ever_v_never                       3
+plot_calculate_outcomes                  1
+plot_forecast                            1
+plot_freq_distribution                   1
+plot_nn_tc_ever_v_never                  1
+plot_outcome_distributions               1
+plot_structural_prior_min_freq           1
+plot_topk                                1
+plot_topk_tc                             1
+plot_train_discriminator                 1
+plot_write_nn_tc                         1
+plots                                    1
+preprocess                               1
+process_tabulated_molecules              1
+sample_molecules_RNN                     6
+tabulate_molecules                       6
+train_discriminator                      3
+train_models_RNN                         6
+write_nn_tc                              3
+write_structural_prior_CV                3
+write_structural_prior_CV_overall        1
+total                                   64
+
+Select jobs to execute...
+
+[Wed Jun 18 13:27:47 2025]
+rule preprocess:
+    input: ../tests/test_data/LOTUS_truncated.txt
+    output: data/prior/raw/LOTUS_truncated.txt
+    jobid: 5
+    reason: Missing output files: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, dataset=LOTUS_truncated
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=30
+
+[Wed Jun 18 13:27:58 2025]
+Finished job 5.
+1 of 64 steps (2%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:27:58 2025]
+rule create_training_sets:
+    input: data/prior/raw/LOTUS_truncated.txt
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    jobid: 6
+    reason: Missing output files: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi; Input files updated by another job: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Wed Jun 18 13:28:01 2025]
+Finished job 6.
+2 of 64 steps (3%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:28:01 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_1_nn_tc_ever_v_never.csv.gz
+    jobid: 58
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_1_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:28:07 2025]
+Finished job 58.
+3 of 64 steps (5%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:28:07 2025]
+rule create_training_sets:
+    input: data/prior/raw/LOTUS_truncated.txt
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    jobid: 4
+    reason: Missing output files: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary; Input files updated by another job: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Wed Jun 18 13:28:10 2025]
+Finished job 4.
+4 of 64 steps (6%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:28:10 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_0_nn_tc_ever_v_never.csv.gz
+    jobid: 57
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_0_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:28:16 2025]
+Finished job 57.
+5 of 64 steps (8%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:28:16 2025]
+rule create_training_sets:
+    input: data/prior/raw/LOTUS_truncated.txt
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi
+    jobid: 7
+    reason: Missing output files: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi; Input files updated by another job: data/prior/raw/LOTUS_truncated.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Wed Jun 18 13:28:19 2025]
+Finished job 7.
+6 of 64 steps (9%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:28:19 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_2_nn_tc_ever_v_never.csv.gz
+    jobid: 59
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_2_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:28:25 2025]
+Finished job 59.
+7 of 64 steps (11%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:28:25 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary
+    output: data/0/prior/models/LOTUS_truncated_SMILES_2_1_model.pt, data/0/prior/models/LOTUS_truncated_SMILES_2_1_loss.csv.gz
+    jobid: 32
+    reason: Missing output files: data/0/prior/models/LOTUS_truncated_SMILES_2_1_model.pt; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2, train_seed=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:29:12 2025]
+Finished job 32.
+8 of 64 steps (12%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:29:12 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/LOTUS_truncated_SMILES_2_1_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples.csv.gz
+    jobid: 31
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples.csv.gz; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/models/LOTUS_truncated_SMILES_2_1_model.pt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2, train_seed=1, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=15, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:29:16 2025]
+Finished job 31.
+9 of 64 steps (14%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:29:16 2025]
+rule tabulate_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz
+    jobid: 30
+    reason: Missing output files: data/0/prior/samples/known_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2, train_seed=1, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=2880
+
+[Wed Jun 18 13:29:18 2025]
+Finished job 30.
+10 of 64 steps (16%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:29:18 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary
+    output: data/0/prior/models/LOTUS_truncated_SMILES_2_0_model.pt, data/0/prior/models/LOTUS_truncated_SMILES_2_0_loss.csv.gz
+    jobid: 29
+    reason: Missing output files: data/0/prior/models/LOTUS_truncated_SMILES_2_0_model.pt; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2, train_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:30:05 2025]
+Finished job 29.
+11 of 64 steps (17%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:30:05 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/LOTUS_truncated_SMILES_2_0_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples.csv.gz
+    jobid: 28
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples.csv.gz; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_2.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/models/LOTUS_truncated_SMILES_2_0_model.pt
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=15, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:30:09 2025]
+Finished job 28.
+12 of 64 steps (19%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:30:09 2025]
+rule tabulate_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz
+    jobid: 27
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=2880
+
+[Wed Jun 18 13:30:11 2025]
+Finished job 27.
+13 of 64 steps (20%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:30:11 2025]
+rule add_carbon:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    output: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2_carbon.csv.gz
+    jobid: 10
+    reason: Missing output files: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2_carbon.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=48000, mem_mib=45777, runtime=720
+
+[Wed Jun 18 13:30:37 2025]
+Finished job 10.
+14 of 64 steps (22%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:30:37 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary
+    output: data/0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt, data/0/prior/models/LOTUS_truncated_SMILES_0_0_loss.csv.gz
+    jobid: 15
+    reason: Missing output files: data/0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0, train_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:31:20 2025]
+Finished job 15.
+15 of 64 steps (23%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:31:20 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv.gz
+    jobid: 14
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/models/LOTUS_truncated_SMILES_0_0_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=15, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:31:23 2025]
+Finished job 14.
+16 of 64 steps (25%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:31:23 2025]
+rule tabulate_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz
+    jobid: 13
+    reason: Missing output files: data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=2880
+
+[Wed Jun 18 13:31:26 2025]
+Finished job 13.
+17 of 64 steps (27%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:31:26 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary
+    output: data/0/prior/models/LOTUS_truncated_SMILES_0_1_model.pt, data/0/prior/models/LOTUS_truncated_SMILES_0_1_loss.csv.gz
+    jobid: 18
+    reason: Missing output files: data/0/prior/models/LOTUS_truncated_SMILES_0_1_model.pt; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0, train_seed=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:32:08 2025]
+Finished job 18.
+18 of 64 steps (28%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:32:08 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/LOTUS_truncated_SMILES_0_1_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples.csv.gz
+    jobid: 17
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples.csv.gz; Input files updated by another job: data/0/prior/models/LOTUS_truncated_SMILES_0_1_model.pt, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_0.vocabulary
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0, train_seed=1, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=15, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:32:11 2025]
+Finished job 17.
+19 of 64 steps (30%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:32:11 2025]
+rule tabulate_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz
+    jobid: 16
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0, train_seed=1, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=2880
+
+[Wed Jun 18 13:32:14 2025]
+Finished job 16.
+20 of 64 steps (31%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:32:14 2025]
+rule add_carbon:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    output: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv.gz
+    jobid: 8
+    reason: Missing output files: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=48000, mem_mib=45777, runtime=720
+
+[Wed Jun 18 13:32:38 2025]
+Finished job 8.
+21 of 64 steps (33%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:32:38 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary
+    output: data/0/prior/models/LOTUS_truncated_SMILES_1_1_model.pt, data/0/prior/models/LOTUS_truncated_SMILES_1_1_loss.csv.gz
+    jobid: 25
+    reason: Missing output files: data/0/prior/models/LOTUS_truncated_SMILES_1_1_model.pt; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1, train_seed=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:33:19 2025]
+Finished job 25.
+22 of 64 steps (34%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:33:19 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/LOTUS_truncated_SMILES_1_1_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples.csv.gz
+    jobid: 24
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples.csv.gz; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/models/LOTUS_truncated_SMILES_1_1_model.pt, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1, train_seed=1, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=15, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:33:22 2025]
+Finished job 24.
+23 of 64 steps (36%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:33:22 2025]
+rule tabulate_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz
+    jobid: 23
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1, train_seed=1, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=2880
+
+[Wed Jun 18 13:33:25 2025]
+Finished job 23.
+24 of 64 steps (38%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:33:25 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary
+    output: data/0/prior/models/LOTUS_truncated_SMILES_1_0_model.pt, data/0/prior/models/LOTUS_truncated_SMILES_1_0_loss.csv.gz
+    jobid: 22
+    reason: Missing output files: data/0/prior/models/LOTUS_truncated_SMILES_1_0_model.pt; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1, train_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:34:06 2025]
+Finished job 22.
+25 of 64 steps (39%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:06 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/LOTUS_truncated_SMILES_1_0_model.pt, data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples.csv.gz
+    jobid: 21
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples.csv.gz; Input files updated by another job: data/0/prior/inputs/train_LOTUS_truncated_SMILES_1.vocabulary, data/0/prior/models/LOTUS_truncated_SMILES_1_0_model.pt, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=15, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:34:10 2025]
+Finished job 21.
+26 of 64 steps (41%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:10 2025]
+rule tabulate_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz
+    jobid: 20
+    reason: Missing output files: data/0/prior/samples/known_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=2880
+
+[Wed Jun 18 13:34:12 2025]
+Finished job 20.
+27 of 64 steps (42%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:12 2025]
+rule add_carbon:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    output: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1_carbon.csv.gz
+    jobid: 9
+    reason: Missing output files: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1_carbon.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=48000, mem_mib=45777, runtime=720
+
+[Wed Jun 18 13:34:36 2025]
+Finished job 9.
+28 of 64 steps (44%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:36 2025]
+rule collapse_train_test_data:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1_carbon.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2_carbon.csv.gz
+    output: data/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi, data/0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv.gz
+    jobid: 3
+    reason: Missing output files: data/0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi, data/0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv.gz, data/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2_carbon.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1_carbon.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=20
+
+[Wed Jun 18 13:34:43 2025]
+Finished job 3.
+29 of 64 steps (45%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:43 2025]
+rule collect_tabulated_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    jobid: 26
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_unique_masses.csv.gz; Input files updated by another job: data/0/prior/samples/known_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_0_0_samples_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=15
+
+[Wed Jun 18 13:34:46 2025]
+Finished job 26.
+30 of 64 steps (47%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:46 2025]
+rule write_structural_prior_CV:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, ../tests/test_data/PubChem_truncated.tsv, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2_carbon.csv.gz
+    output: data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_tc.csv.gz
+    jobid: 35
+    reason: Missing output files: data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_ranks_structure.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2_carbon.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=15
+
+[Wed Jun 18 13:34:51 2025]
+Finished job 35.
+31 of 64 steps (48%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:51 2025]
+rule calculate_outcome_distrs:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, ../tests/test_data/PubChem_truncated.tsv
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcome_distrs.csv.gz
+    jobid: 55
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcome_distrs.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:34:56 2025]
+Finished job 55.
+32 of 64 steps (50%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:34:56 2025]
+rule write_nn_tc:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, ../tests/test_data/PubChem_truncated.tsv
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_2_write_nn_tc.csv.gz
+    jobid: 43
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_2_write_nn_tc.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:00 2025]
+Finished job 43.
+33 of 64 steps (52%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:00 2025]
+rule calculate_outcomes:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcomes.csv.gz
+    jobid: 39
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcomes.csv.gz; Input files updated by another job: data/0/prior/samples/invalid_LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:35:12 2025]
+Finished job 39.
+34 of 64 steps (53%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:12 2025]
+rule train_discriminator:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_2_train_discriminator.csv.gz
+    jobid: 47
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_2_train_discriminator.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:17 2025]
+Finished job 47.
+35 of 64 steps (55%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:17 2025]
+rule freq_distribution:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_2_freq_distribution.csv.gz
+    jobid: 51
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_2_freq_distribution.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:19 2025]
+Finished job 51.
+36 of 64 steps (56%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:19 2025]
+rule collect_tabulated_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_unique_masses.csv.gz
+    jobid: 19
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_unique_masses.csv.gz; Input files updated by another job: data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_1_0_samples_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=15
+
+[Wed Jun 18 13:35:21 2025]
+Finished job 19.
+37 of 64 steps (58%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:21 2025]
+rule write_structural_prior_CV:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi, ../tests/test_data/PubChem_truncated.tsv, data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1_carbon.csv.gz
+    output: data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_tc.csv.gz
+    jobid: 34
+    reason: Missing output files: data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_tc.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1_carbon.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=15
+
+[Wed Jun 18 13:35:26 2025]
+Finished job 34.
+38 of 64 steps (59%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:26 2025]
+rule write_nn_tc:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, ../tests/test_data/PubChem_truncated.tsv
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_1_write_nn_tc.csv.gz
+    jobid: 42
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_1_write_nn_tc.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:31 2025]
+Finished job 42.
+39 of 64 steps (61%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:31 2025]
+rule calculate_outcome_distrs:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, ../tests/test_data/PubChem_truncated.tsv
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcome_distrs.csv.gz
+    jobid: 54
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcome_distrs.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:35 2025]
+Finished job 54.
+40 of 64 steps (62%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:35 2025]
+rule calculate_outcomes:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcomes.csv.gz
+    jobid: 38
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcomes.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_1_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:35:49 2025]
+Finished job 38.
+41 of 64 steps (64%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:49 2025]
+rule train_discriminator:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_1_train_discriminator.csv.gz
+    jobid: 46
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_1_train_discriminator.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:54 2025]
+Finished job 46.
+42 of 64 steps (66%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:54 2025]
+rule freq_distribution:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_1_freq_distribution.csv.gz
+    jobid: 50
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_1_freq_distribution.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:35:56 2025]
+Finished job 50.
+43 of 64 steps (67%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:56 2025]
+rule collect_tabulated_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv.gz
+    jobid: 12
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_unique_masses.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_1_0_samples_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_0_0_samples_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=15
+
+[Wed Jun 18 13:35:58 2025]
+Finished job 12.
+44 of 64 steps (69%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:35:58 2025]
+rule write_structural_prior_CV:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, ../tests/test_data/PubChem_truncated.tsv, data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv.gz
+    output: data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_tc.csv.gz
+    jobid: 33
+    reason: Missing output files: data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0_carbon.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=15
+
+[Wed Jun 18 13:36:04 2025]
+Finished job 33.
+45 of 64 steps (70%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:04 2025]
+rule calculate_outcome_distrs:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, ../tests/test_data/PubChem_truncated.tsv
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcome_distrs.csv.gz
+    jobid: 53
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcome_distrs.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:36:08 2025]
+Finished job 53.
+46 of 64 steps (72%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:08 2025]
+rule plot_outcome_distributions:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcome_distrs.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcome_distrs.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcome_distrs.csv.gz
+    output: data/model_evaluation/plot/0/calculate_outcome_distrs
+    jobid: 52
+    reason: Missing output files: data/model_evaluation/plot/0/calculate_outcome_distrs; Input files updated by another job: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcome_distrs.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcome_distrs.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcome_distrs.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:36:11 2025]
+Finished job 52.
+47 of 64 steps (73%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:11 2025]
+rule write_nn_tc:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, ../tests/test_data/PubChem_truncated.tsv
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_0_write_nn_tc.csv.gz
+    jobid: 41
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_0_write_nn_tc.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:36:16 2025]
+Finished job 41.
+48 of 64 steps (75%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:16 2025]
+rule process_tabulated_molecules:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi
+    output: data/0/prior/samples/LOTUS_truncated_SMILES_processed_min1_freq-avg.csv.gz
+    jobid: 11
+    reason: Missing output files: data/0/prior/samples/LOTUS_truncated_SMILES_processed_min1_freq-avg.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/samples/LOTUS_truncated_SMILES_1_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_1.smi, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_2.smi, data/0/prior/samples/LOTUS_truncated_SMILES_2_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, min_freq=1, metric=freq-avg
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=128000, mem_mib=122071, runtime=15
+
+[Wed Jun 18 13:36:18 2025]
+Finished job 11.
+49 of 64 steps (77%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:18 2025]
+rule write_structural_prior_CV_overall:
+    input: data/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi, data/0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi, ../tests/test_data/PubChem_truncated.tsv, data/0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_processed_min1_freq-avg.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_tc.csv.gz
+    output: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz
+    jobid: 2
+    reason: Missing output files: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz; Input files updated by another job: data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_ranks_structure.csv.gz, data/0/prior/samples/LOTUS_truncated_SMILES_processed_min1_freq-avg.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_tc.csv.gz, data/0/prior/inputs/train_LOTUS_truncated_SMILES_carbon_all.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv.gz, data/0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_tc.csv.gz, data/0/prior/inputs/train_LOTUS_truncated_SMILES_all.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, min_freq=1, metric=freq-avg
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, cpus_per_task=8, mem_mb=128000, mem_mib=122071, runtime=15
+
+[Wed Jun 18 13:36:28 2025]
+Finished job 2.
+50 of 64 steps (78%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:28 2025]
+rule plot_topk:
+    input: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz
+    output: data/model_evaluation/plot/0/topk
+    jobid: 1
+    reason: Missing output files: data/model_evaluation/plot/0/topk; Input files updated by another job: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:36:30 2025]
+Finished job 1.
+51 of 64 steps (80%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:30 2025]
+rule plot_structural_prior_min_freq:
+    input: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz
+    output: data/model_evaluation/plot/0/structural_prior_min_freq
+    jobid: 63
+    reason: Missing output files: data/model_evaluation/plot/0/structural_prior_min_freq; Input files updated by another job: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=30
+
+[Wed Jun 18 13:36:33 2025]
+Finished job 63.
+52 of 64 steps (81%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:33 2025]
+rule plot_nn_tc_ever_v_never:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_0_nn_tc_ever_v_never.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_nn_tc_ever_v_never.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_nn_tc_ever_v_never.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz
+    output: data/model_evaluation/plot/0/nn_tc_ever_v_never
+    jobid: 56
+    reason: Missing output files: data/model_evaluation/plot/0/nn_tc_ever_v_never; Input files updated by another job: data/0/prior/structural_prior/LOTUS_truncated_SMILES_1_CV_ranks_structure.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_0_nn_tc_ever_v_never.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_0_CV_ranks_structure.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_nn_tc_ever_v_never.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_nn_tc_ever_v_never.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_2_CV_ranks_structure.csv.gz, data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_ranks_structure.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:36:36 2025]
+Finished job 56.
+53 of 64 steps (83%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:36 2025]
+rule plot_topk_tc:
+    input: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz
+    output: data/model_evaluation/plot/0/topk_tc
+    jobid: 60
+    reason: Missing output files: data/model_evaluation/plot/0/topk_tc; Input files updated by another job: data/0/prior/structural_prior/LOTUS_truncated_SMILES_min1_all_freq-avg_CV_tc.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:36:39 2025]
+Finished job 60.
+54 of 64 steps (84%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:39 2025]
+rule forecast:
+    input: data/0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi, data/0/prior/samples/LOTUS_truncated_SMILES_processed_min1_freq-avg.csv.gz
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_forecast.csv
+    jobid: 62
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_forecast.csv; Input files updated by another job: data/0/prior/inputs/test_LOTUS_truncated_SMILES_all.smi, data/0/prior/samples/LOTUS_truncated_SMILES_processed_min1_freq-avg.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=30
+
+[Wed Jun 18 13:36:41 2025]
+Finished job 62.
+55 of 64 steps (86%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:41 2025]
+rule calculate_outcomes:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcomes.csv.gz
+    jobid: 37
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcomes.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/samples/invalid_LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/samples/known_LOTUS_truncated_SMILES_0_unique_masses.csv.gz
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:36:53 2025]
+Finished job 37.
+56 of 64 steps (88%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:53 2025]
+rule train_discriminator:
+    input: data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi, data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_0_train_discriminator.csv.gz
+    jobid: 45
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_0_train_discriminator.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/train0_LOTUS_truncated_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:36:57 2025]
+Finished job 45.
+57 of 64 steps (89%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:36:57 2025]
+rule freq_distribution:
+    input: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    output: data/model_evaluation/0/LOTUS_truncated_SMILES_0_freq_distribution.csv.gz
+    jobid: 49
+    reason: Missing output files: data/model_evaluation/0/LOTUS_truncated_SMILES_0_freq_distribution.csv.gz; Input files updated by another job: data/0/prior/samples/LOTUS_truncated_SMILES_0_unique_masses.csv.gz, data/0/prior/inputs/test0_LOTUS_truncated_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=LOTUS_truncated, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:37:00 2025]
+Finished job 49.
+58 of 64 steps (91%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:37:00 2025]
+rule plot_calculate_outcomes:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcomes.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcomes.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcomes.csv.gz
+    output: data/model_evaluation/plot/0/calculate_outcomes
+    jobid: 36
+    reason: Missing output files: data/model_evaluation/plot/0/calculate_outcomes; Input files updated by another job: data/model_evaluation/0/LOTUS_truncated_SMILES_0_calculate_outcomes.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_calculate_outcomes.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_calculate_outcomes.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:37:03 2025]
+Finished job 36.
+59 of 64 steps (92%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:37:03 2025]
+rule plot_write_nn_tc:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_0_write_nn_tc.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_write_nn_tc.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_write_nn_tc.csv.gz
+    output: data/model_evaluation/plot/0/write_nn_tc
+    jobid: 40
+    reason: Missing output files: data/model_evaluation/plot/0/write_nn_tc; Input files updated by another job: data/model_evaluation/0/LOTUS_truncated_SMILES_1_write_nn_tc.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_write_nn_tc.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_0_write_nn_tc.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:37:06 2025]
+Finished job 40.
+60 of 64 steps (94%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:37:06 2025]
+rule plot_forecast:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_forecast.csv
+    output: data/model_evaluation/plot/0/forecast
+    jobid: 61
+    reason: Missing output files: data/model_evaluation/plot/0/forecast; Input files updated by another job: data/model_evaluation/0/LOTUS_truncated_SMILES_forecast.csv
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=30
+
+[Wed Jun 18 13:37:08 2025]
+Finished job 61.
+61 of 64 steps (95%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:37:08 2025]
+rule plot_freq_distribution:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_0_freq_distribution.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_freq_distribution.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_freq_distribution.csv.gz
+    output: data/model_evaluation/plot/0/freq_distribution
+    jobid: 48
+    reason: Missing output files: data/model_evaluation/plot/0/freq_distribution; Input files updated by another job: data/model_evaluation/0/LOTUS_truncated_SMILES_2_freq_distribution.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_0_freq_distribution.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_freq_distribution.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:37:11 2025]
+Finished job 48.
+62 of 64 steps (97%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:37:11 2025]
+rule plot_train_discriminator:
+    input: data/model_evaluation/0/LOTUS_truncated_SMILES_0_train_discriminator.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_train_discriminator.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_train_discriminator.csv.gz
+    output: data/model_evaluation/plot/0/train_discriminator
+    jobid: 44
+    reason: Missing output files: data/model_evaluation/plot/0/train_discriminator; Input files updated by another job: data/model_evaluation/0/LOTUS_truncated_SMILES_0_train_discriminator.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_2_train_discriminator.csv.gz, data/model_evaluation/0/LOTUS_truncated_SMILES_1_train_discriminator.csv.gz
+    wildcards: output_dir=data, enum_factor=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=256000, mem_mib=244141, runtime=1000
+
+[Wed Jun 18 13:37:13 2025]
+Finished job 44.
+63 of 64 steps (98%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:37:13 2025]
+localrule plots:
+    input: data/model_evaluation/plot/0/topk, data/model_evaluation/plot/0/calculate_outcomes, data/model_evaluation/plot/0/write_nn_tc, data/model_evaluation/plot/0/train_discriminator, data/model_evaluation/plot/0/freq_distribution, data/model_evaluation/plot/0/calculate_outcome_distrs, data/model_evaluation/plot/0/nn_tc_ever_v_never, data/model_evaluation/plot/0/topk_tc, data/model_evaluation/plot/0/forecast, data/model_evaluation/plot/0/structural_prior_min_freq
+    jobid: 0
+    reason: Input files updated by another job: data/model_evaluation/plot/0/forecast, data/model_evaluation/plot/0/structural_prior_min_freq, data/model_evaluation/plot/0/freq_distribution, data/model_evaluation/plot/0/topk, data/model_evaluation/plot/0/nn_tc_ever_v_never, data/model_evaluation/plot/0/calculate_outcomes, data/model_evaluation/plot/0/calculate_outcome_distrs, data/model_evaluation/plot/0/topk_tc, data/model_evaluation/plot/0/write_nn_tc, data/model_evaluation/plot/0/train_discriminator
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T
+
+[Wed Jun 18 13:37:13 2025]
+Finished job 0.
+64 of 64 steps (100%) done
+Complete log: .snakemake/log/2025-06-18T132747.767048.snakemake.log

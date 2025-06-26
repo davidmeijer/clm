@@ -1,0 +1,63 @@
+Config file config/config.yaml is extended by additional config specified via the command line.
+Config file config/config.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                  count
+---------------------------------  -------
+add_carbon                               3
+calculate_outcome_distrs                 3
+calculate_outcomes                       3
+collapse_train_test_data                 1
+collect_tabulated_molecules              3
+create_training_sets                     3
+forecast                                 1
+freq_distribution                        3
+nn_tc_ever_v_never                       3
+plot_calculate_outcomes                  1
+plot_forecast                            1
+plot_freq_distribution                   1
+plot_nn_tc_ever_v_never                  1
+plot_outcome_distributions               1
+plot_structural_prior_min_freq           1
+plot_topk                                1
+plot_topk_tc                             1
+plot_train_discriminator                 1
+plot_write_nn_tc                         1
+plots                                    1
+preprocess                               1
+process_tabulated_molecules              4
+sample_molecules_RNN                     9
+tabulate_molecules                       9
+train_discriminator                      3
+train_models_RNN                         9
+write_nn_tc                              3
+write_structural_prior_CV                3
+write_structural_prior_CV_overall        4
+total                                   79
+
+Select jobs to execute...
+
+[Thu Jun 26 01:04:57 2025]
+rule preprocess:
+    input: ../datasets/retromol.txt
+    output: data/prior/raw/retromol.txt
+    jobid: 5
+    reason: Missing output files: data/prior/raw/retromol.txt
+    wildcards: output_dir=data, dataset=retromol
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=30
+
+[Thu Jun 26 01:05:07 2025]
+Error in rule preprocess:
+    jobid: 5
+    input: ../datasets/retromol.txt
+    output: data/prior/raw/retromol.txt
+    shell:
+        clm preprocess --seed 5831 --input-file ../datasets/retromol.txt --output-file data/prior/raw/retromol.txt --min-heavy-atoms 3 --valid-atoms Br C Cl F H I N O P S --max-input-smiles 1000   
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2025-06-26T010457.712773.snakemake.log

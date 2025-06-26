@@ -6,7 +6,7 @@ representations:
 
 # The number of cross-validation folds.
 # The dataset is split into train/test set for each fold, and models are trained/tested on each fold.
-folds: 10
+folds: 3
 
 # Seeds used to initialize random number generators for the training runs.
 # Each seed corresponds to a separate training run.
@@ -15,13 +15,6 @@ train_seeds:
   - 0
   - 1
   - 2
-  - 3
-  - 4
-  - 5
-  - 6
-  - 7
-  - 8
-  - 9
 
 # Seeds used when sampling molecules from the trained models.
 # The number of 'sample_seeds' values specifies how many times the 'sample_molecules_RNN' step is executed,
@@ -38,13 +31,14 @@ sample_seeds:
 # than those provided in the original dataset.
 enum_factors:
   - 0
-  - 10
-  - 30
-  - 50
-  - 100
+  # - 10
+  # - 30
+  # - 50
+  # - 100
 
 #  Limits the maximum number of input SMILES to be read from the original dataset. 0 means there's no limit.
-max_input_smiles: 0
+# max_input_smiles: 0
+max_input_smiles: 1000
 
 # A dictionary defining the arguments to be passed to the preprocess command.
 preprocess:
@@ -71,14 +65,15 @@ model_params:
   dropout: 0 # Dropout rate applied to the RNN layer for regularization.
   batch_size: 64 # Number of samples processed before the models internal parameters are updated.
   learning_rate: 0.001 # Used by the optimizer to update model parameters.
-  max_epochs: 999999 # Maximum number of training epochs (complete passes through the training dataset).
+  # max_epochs: 999999 # Maximum number of training epochs (complete passes through the training dataset).
+  max_epochs: 3
   patience: 50000 # Number of steps with no improvement in the validation loss after which early stopping is triggered.
 
   # An RNN model conditioned on input descriptors (experimentally obtained properties of the input SMILES).
   # Note that rnn_type and other RNN architecture parameters are still applicable in this case.
   conditional:
     # Is the conditional model enabled?
-    enabled: false
+    enabled: true
 
     # Note: Both emb and emb_l below cannot be true at the same time.
     # Concatenate the descriptors directly to the token embeddings at each step in the sequence?
@@ -156,7 +151,8 @@ paths:
   # Base directory for outputs
   output_dir: data
   # The input dataset file.
-  dataset: "../tests/test_data/LOTUS_truncated.txt"
+  # dataset: "../tests/test_data/LOTUS_truncated.txt"
+  dataset: "../datasets/retromol.txt"
   # File containing data from PubChem.
   pubchem_tsv_file: "../tests/test_data/PubChem_truncated.tsv"
 

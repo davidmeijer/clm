@@ -1,0 +1,165 @@
+Config file config/config.yaml is extended by additional config specified via the command line.
+Config file config/config.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                  count
+---------------------------------  -------
+add_carbon                               3
+calculate_outcome_distrs                 3
+calculate_outcomes                       3
+collapse_train_test_data                 1
+collect_tabulated_molecules              3
+create_training_sets                     3
+forecast                                 1
+freq_distribution                        3
+nn_tc_ever_v_never                       3
+plot_calculate_outcomes                  1
+plot_forecast                            1
+plot_freq_distribution                   1
+plot_nn_tc_ever_v_never                  1
+plot_outcome_distributions               1
+plot_structural_prior_min_freq           1
+plot_topk                                1
+plot_topk_tc                             1
+plot_train_discriminator                 1
+plot_write_nn_tc                         1
+plots                                    1
+preprocess                               1
+process_tabulated_molecules              4
+sample_molecules_RNN                     9
+tabulate_molecules                       9
+train_discriminator                      3
+train_models_RNN                         9
+write_nn_tc                              3
+write_structural_prior_CV                3
+write_structural_prior_CV_overall        4
+total                                   79
+
+Select jobs to execute...
+
+[Thu Jun 26 01:05:34 2025]
+rule preprocess:
+    input: ../datasets/retromol.txt
+    output: data/prior/raw/retromol.txt
+    jobid: 5
+    reason: Missing output files: data/prior/raw/retromol.txt
+    wildcards: output_dir=data, dataset=retromol
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=30
+
+[Thu Jun 26 01:05:38 2025]
+Finished job 5.
+1 of 79 steps (1%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:05:38 2025]
+rule create_training_sets:
+    input: data/prior/raw/retromol.txt
+    output: data/0/prior/inputs/train_retromol_SMILES_1.smi, data/0/prior/inputs/train_retromol_SMILES_1.vocabulary, data/0/prior/inputs/train0_retromol_SMILES_1.smi, data/0/prior/inputs/test0_retromol_SMILES_1.smi
+    jobid: 6
+    reason: Missing output files: data/0/prior/inputs/train0_retromol_SMILES_1.smi, data/0/prior/inputs/train_retromol_SMILES_1.vocabulary, data/0/prior/inputs/test0_retromol_SMILES_1.smi, data/0/prior/inputs/train_retromol_SMILES_1.smi; Input files updated by another job: data/prior/raw/retromol.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Thu Jun 26 01:05:41 2025]
+Finished job 6.
+2 of 79 steps (3%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:05:41 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_retromol_SMILES_1.smi, data/0/prior/inputs/train0_retromol_SMILES_1.smi
+    output: data/model_evaluation/0/retromol_SMILES_1_nn_tc_ever_v_never.csv.gz
+    jobid: 67
+    reason: Missing output files: data/model_evaluation/0/retromol_SMILES_1_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_retromol_SMILES_1.smi, data/0/prior/inputs/test0_retromol_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Thu Jun 26 01:05:46 2025]
+Finished job 67.
+3 of 79 steps (4%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:05:46 2025]
+rule create_training_sets:
+    input: data/prior/raw/retromol.txt
+    output: data/0/prior/inputs/train_retromol_SMILES_2.smi, data/0/prior/inputs/train_retromol_SMILES_2.vocabulary, data/0/prior/inputs/train0_retromol_SMILES_2.smi, data/0/prior/inputs/test0_retromol_SMILES_2.smi
+    jobid: 7
+    reason: Missing output files: data/0/prior/inputs/train_retromol_SMILES_2.smi, data/0/prior/inputs/test0_retromol_SMILES_2.smi, data/0/prior/inputs/train0_retromol_SMILES_2.smi, data/0/prior/inputs/train_retromol_SMILES_2.vocabulary; Input files updated by another job: data/prior/raw/retromol.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Thu Jun 26 01:05:50 2025]
+Finished job 7.
+4 of 79 steps (5%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:05:50 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_retromol_SMILES_2.smi, data/0/prior/inputs/train0_retromol_SMILES_2.smi
+    output: data/model_evaluation/0/retromol_SMILES_2_nn_tc_ever_v_never.csv.gz
+    jobid: 68
+    reason: Missing output files: data/model_evaluation/0/retromol_SMILES_2_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_retromol_SMILES_2.smi, data/0/prior/inputs/train0_retromol_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Thu Jun 26 01:05:54 2025]
+Finished job 68.
+5 of 79 steps (6%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:05:54 2025]
+rule create_training_sets:
+    input: data/prior/raw/retromol.txt
+    output: data/0/prior/inputs/train_retromol_SMILES_0.smi, data/0/prior/inputs/train_retromol_SMILES_0.vocabulary, data/0/prior/inputs/train0_retromol_SMILES_0.smi, data/0/prior/inputs/test0_retromol_SMILES_0.smi
+    jobid: 4
+    reason: Missing output files: data/0/prior/inputs/train_retromol_SMILES_0.vocabulary, data/0/prior/inputs/test0_retromol_SMILES_0.smi, data/0/prior/inputs/train0_retromol_SMILES_0.smi, data/0/prior/inputs/train_retromol_SMILES_0.smi; Input files updated by another job: data/prior/raw/retromol.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Thu Jun 26 01:05:58 2025]
+Finished job 4.
+6 of 79 steps (8%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:05:58 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_retromol_SMILES_0.smi, data/0/prior/inputs/train0_retromol_SMILES_0.smi
+    output: data/model_evaluation/0/retromol_SMILES_0_nn_tc_ever_v_never.csv.gz
+    jobid: 66
+    reason: Missing output files: data/model_evaluation/0/retromol_SMILES_0_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_retromol_SMILES_0.smi, data/0/prior/inputs/train0_retromol_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Thu Jun 26 01:06:03 2025]
+Finished job 66.
+7 of 79 steps (9%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:06:03 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_retromol_SMILES_2.smi, data/0/prior/inputs/train_retromol_SMILES_2.vocabulary
+    output: data/0/prior/models/retromol_SMILES_2_0_model.pt, data/0/prior/models/retromol_SMILES_2_0_loss.csv.gz
+    jobid: 35
+    reason: Missing output files: data/0/prior/models/retromol_SMILES_2_0_model.pt; Input files updated by another job: data/0/prior/inputs/train_retromol_SMILES_2.smi, data/0/prior/inputs/train_retromol_SMILES_2.vocabulary
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=2, train_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Thu Jun 26 01:11:58 2025]
+Finished job 35.
+8 of 79 steps (10%) done
+Select jobs to execute...
+
+[Thu Jun 26 01:11:58 2025]
+rule sample_molecules_RNN:
+    input: data/0/prior/models/retromol_SMILES_2_0_model.pt, data/0/prior/inputs/train_retromol_SMILES_2.vocabulary, data/0/prior/inputs/test0_retromol_SMILES_2.smi
+    output: data/0/prior/samples/retromol_SMILES_2_0_0_samples.csv.gz
+    jobid: 34
+    reason: Missing output files: data/0/prior/samples/retromol_SMILES_2_0_0_samples.csv.gz; Input files updated by another job: data/0/prior/models/retromol_SMILES_2_0_model.pt, data/0/prior/inputs/test0_retromol_SMILES_2.smi, data/0/prior/inputs/train_retromol_SMILES_2.vocabulary
+    wildcards: output_dir=data, enum_factor=0, dataset=retromol, repr=SMILES, fold=2, train_seed=0, sample_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=1015, slurm_extra=--gres=gpu:1
+
+Terminating processes on user request, this might take some time.
+Cancelling snakemake on user request.

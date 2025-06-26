@@ -1,0 +1,171 @@
+Config file config/config.yaml is extended by additional config specified via the command line.
+Config file config/config.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 3
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                  count
+---------------------------------  -------
+add_carbon                               3
+calculate_outcome_distrs                 3
+calculate_outcomes                       3
+collapse_train_test_data                 1
+collect_tabulated_molecules              3
+create_training_sets                     3
+forecast                                 1
+freq_distribution                        3
+nn_tc_ever_v_never                       3
+plot_calculate_outcomes                  1
+plot_forecast                            1
+plot_freq_distribution                   1
+plot_nn_tc_ever_v_never                  1
+plot_outcome_distributions               1
+plot_structural_prior_min_freq           1
+plot_topk                                1
+plot_topk_tc                             1
+plot_train_discriminator                 1
+plot_write_nn_tc                         1
+plots                                    1
+preprocess                               1
+process_tabulated_molecules              4
+sample_molecules_RNN                     9
+tabulate_molecules                       9
+train_discriminator                      3
+train_models_RNN                         9
+write_nn_tc                              3
+write_structural_prior_CV                3
+write_structural_prior_CV_overall        4
+total                                   79
+
+Select jobs to execute...
+
+[Wed Jun 18 13:52:21 2025]
+rule preprocess:
+    input: ../npatlas/smiles_train.txt
+    output: data/prior/raw/smiles_train.txt
+    jobid: 5
+    reason: Missing output files: data/prior/raw/smiles_train.txt; Updated input files: ../npatlas/smiles_train.txt
+    wildcards: output_dir=data, dataset=smiles_train
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=12000, mem_mib=11445, runtime=30
+
+[Wed Jun 18 13:52:26 2025]
+Finished job 5.
+1 of 79 steps (1%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:26 2025]
+rule create_training_sets:
+    input: data/prior/raw/smiles_train.txt
+    output: data/0/prior/inputs/train_smiles_train_SMILES_1.smi, data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary, data/0/prior/inputs/train0_smiles_train_SMILES_1.smi, data/0/prior/inputs/test0_smiles_train_SMILES_1.smi
+    jobid: 6
+    reason: Missing output files: data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary, data/0/prior/inputs/train0_smiles_train_SMILES_1.smi, data/0/prior/inputs/test0_smiles_train_SMILES_1.smi, data/0/prior/inputs/train_smiles_train_SMILES_1.smi; Input files updated by another job: data/prior/raw/smiles_train.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+
+[Wed Jun 18 13:52:26 2025]
+rule create_training_sets:
+    input: data/prior/raw/smiles_train.txt
+    output: data/0/prior/inputs/train_smiles_train_SMILES_2.smi, data/0/prior/inputs/train_smiles_train_SMILES_2.vocabulary, data/0/prior/inputs/train0_smiles_train_SMILES_2.smi, data/0/prior/inputs/test0_smiles_train_SMILES_2.smi
+    jobid: 7
+    reason: Missing output files: data/0/prior/inputs/train0_smiles_train_SMILES_2.smi, data/0/prior/inputs/train_smiles_train_SMILES_2.vocabulary, data/0/prior/inputs/train_smiles_train_SMILES_2.smi, data/0/prior/inputs/test0_smiles_train_SMILES_2.smi; Input files updated by another job: data/prior/raw/smiles_train.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+
+[Wed Jun 18 13:52:26 2025]
+rule create_training_sets:
+    input: data/prior/raw/smiles_train.txt
+    output: data/0/prior/inputs/train_smiles_train_SMILES_0.smi, data/0/prior/inputs/train_smiles_train_SMILES_0.vocabulary, data/0/prior/inputs/train0_smiles_train_SMILES_0.smi, data/0/prior/inputs/test0_smiles_train_SMILES_0.smi
+    jobid: 4
+    reason: Missing output files: data/0/prior/inputs/test0_smiles_train_SMILES_0.smi, data/0/prior/inputs/train_smiles_train_SMILES_0.vocabulary, data/0/prior/inputs/train0_smiles_train_SMILES_0.smi, data/0/prior/inputs/train_smiles_train_SMILES_0.smi; Input files updated by another job: data/prior/raw/smiles_train.txt
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Wed Jun 18 13:52:29 2025]
+Finished job 4.
+2 of 79 steps (3%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:29 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_smiles_train_SMILES_0.smi, data/0/prior/inputs/train0_smiles_train_SMILES_0.smi
+    output: data/model_evaluation/0/smiles_train_SMILES_0_nn_tc_ever_v_never.csv.gz
+    jobid: 66
+    reason: Missing output files: data/model_evaluation/0/smiles_train_SMILES_0_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/test0_smiles_train_SMILES_0.smi, data/0/prior/inputs/train0_smiles_train_SMILES_0.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:52:29 2025]
+Finished job 6.
+3 of 79 steps (4%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:29 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_smiles_train_SMILES_1.smi, data/0/prior/inputs/train0_smiles_train_SMILES_1.smi
+    output: data/model_evaluation/0/smiles_train_SMILES_1_nn_tc_ever_v_never.csv.gz
+    jobid: 67
+    reason: Missing output files: data/model_evaluation/0/smiles_train_SMILES_1_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_smiles_train_SMILES_1.smi, data/0/prior/inputs/test0_smiles_train_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:52:29 2025]
+Finished job 7.
+4 of 79 steps (5%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:29 2025]
+rule nn_tc_ever_v_never:
+    input: data/0/prior/inputs/test0_smiles_train_SMILES_2.smi, data/0/prior/inputs/train0_smiles_train_SMILES_2.smi
+    output: data/model_evaluation/0/smiles_train_SMILES_2_nn_tc_ever_v_never.csv.gz
+    jobid: 68
+    reason: Missing output files: data/model_evaluation/0/smiles_train_SMILES_2_nn_tc_ever_v_never.csv.gz; Input files updated by another job: data/0/prior/inputs/train0_smiles_train_SMILES_2.smi, data/0/prior/inputs/test0_smiles_train_SMILES_2.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=64000, mem_mib=61036, runtime=1000
+
+[Wed Jun 18 13:52:35 2025]
+Finished job 67.
+5 of 79 steps (6%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:35 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_smiles_train_SMILES_1.smi, data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary
+    output: data/0/prior/models/smiles_train_SMILES_1_0_model.pt, data/0/prior/models/smiles_train_SMILES_1_0_loss.csv.gz
+    jobid: 25
+    reason: Missing output files: data/0/prior/models/smiles_train_SMILES_1_0_model.pt; Input files updated by another job: data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary, data/0/prior/inputs/train_smiles_train_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=1, train_seed=0
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:52:35 2025]
+Finished job 66.
+6 of 79 steps (8%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:35 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_smiles_train_SMILES_1.smi, data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary
+    output: data/0/prior/models/smiles_train_SMILES_1_2_model.pt, data/0/prior/models/smiles_train_SMILES_1_2_loss.csv.gz
+    jobid: 31
+    reason: Missing output files: data/0/prior/models/smiles_train_SMILES_1_2_model.pt; Input files updated by another job: data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary, data/0/prior/inputs/train_smiles_train_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=1, train_seed=2
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+[Wed Jun 18 13:52:35 2025]
+Finished job 68.
+7 of 79 steps (9%) done
+Select jobs to execute...
+
+[Wed Jun 18 13:52:35 2025]
+rule train_models_RNN:
+    input: data/0/prior/inputs/train_smiles_train_SMILES_1.smi, data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary
+    output: data/0/prior/models/smiles_train_SMILES_1_1_model.pt, data/0/prior/models/smiles_train_SMILES_1_1_loss.csv.gz
+    jobid: 28
+    reason: Missing output files: data/0/prior/models/smiles_train_SMILES_1_1_model.pt; Input files updated by another job: data/0/prior/inputs/train_smiles_train_SMILES_1.vocabulary, data/0/prior/inputs/train_smiles_train_SMILES_1.smi
+    wildcards: output_dir=data, enum_factor=0, dataset=smiles_train, repr=SMILES, fold=1, train_seed=1
+    resources: tmpdir=/var/folders/2l/vg9l7rwj4wbggfylfbz6xkg00000gn/T, mem_mb=32000, mem_mib=30518, runtime=4320, slurm_extra=--gres=gpu:1
+
+Terminating processes on user request, this might take some time.
+Cancelling snakemake on user request.
