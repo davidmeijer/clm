@@ -31,14 +31,13 @@ sample_seeds:
 # than those provided in the original dataset.
 enum_factors:
   - 0
-  # - 10
+  - 10
   # - 30
   # - 50
   # - 100
 
 #  Limits the maximum number of input SMILES to be read from the original dataset. 0 means there's no limit.
-# max_input_smiles: 0
-max_input_smiles: 1000
+max_input_smiles: 0
 
 # A dictionary defining the arguments to be passed to the preprocess command.
 preprocess:
@@ -65,8 +64,7 @@ model_params:
   dropout: 0 # Dropout rate applied to the RNN layer for regularization.
   batch_size: 64 # Number of samples processed before the models internal parameters are updated.
   learning_rate: 0.001 # Used by the optimizer to update model parameters.
-  # max_epochs: 999999 # Maximum number of training epochs (complete passes through the training dataset).
-  max_epochs: 3
+  max_epochs: 999999 # Maximum number of training epochs (complete passes through the training dataset).
   patience: 50000 # Number of steps with no improvement in the validation loss after which early stopping is triggered.
 
   # An RNN model conditioned on input descriptors (experimentally obtained properties of the input SMILES).
@@ -100,7 +98,7 @@ model_params:
   # Frequency of logging training progress in terms of epochs.
   log_every_epochs: 1
   # Number of molecules to sample from the trained model after training.
-  sample_mols: 10000000
+  sample_mols: 100000
 
 # When looking at sampled molecules across all folds, what metric(s) do we
 # use for aggregating frequencies?
