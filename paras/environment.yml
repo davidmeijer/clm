@@ -1,0 +1,11 @@
+name: paras-fast
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - hmmer   # HMMER v3 (hmmsearch, hmmscan, hmmpress, etc.)
+  - hmmer2  # HMMER v2 (e.g., hmmpfam, hmmsearch from v2 toolset)
+  - pip
+  - pip:
+      - -e .

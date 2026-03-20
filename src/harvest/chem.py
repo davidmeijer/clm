@@ -47,6 +47,16 @@ def mol_to_morgan_fp(mol: Chem.Mol, radius: int = 2, n_bits: int = 2048) -> Expl
     return fp
 
 
+def mol_to_inchikey_conn(mol: Chem.Mol) -> str:
+    """
+    Calculate the InChIKey connectivity layer of a molecule.
+    
+    :param mol: RDKit Mol object to calculate InChIKey for
+    :return: InChIKey of the molecule
+    """
+    return Chem.MolToInchiKey(mol).split("-")[0]
+
+
 def tanimoto(fp1: ExplicitBitVect, fp2: ExplicitBitVect) -> float:
     """
     Calculate the Tanimoto similarity between two fingerprints.

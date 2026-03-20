@@ -92,3 +92,5 @@ def cmd_run_retromol(
 
     if jsonl_fh:
         jsonl_fh.close()
+
+

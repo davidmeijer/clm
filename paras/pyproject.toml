@@ -1,0 +1,79 @@
+[project]
+name = "paras"
+version = "0.0.0-dev"
+description = "Fast implementation of PARAS"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
+authors = [
+    { name = "David Meijer", email = "david.meijer@wur.nl" }
+]
+keywords = ["paras", "natural-products", "non-ribosomal-peptides", "substrate-specificity-prediction", "monomers"]
+
+dependencies = [
+    "rdkit",
+    "biopython",
+    "tqdm",
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
+
+[project.urls]
+Homepage = "https://github.com/davidmeijer/clm-harvest/paras"
+Repository = "https://github.com/davidmeijer/clm-harvest/paras"
+Issues = "https://github.com/davidmeijer/clm-harvest/paras/issues"
+Documentation = "https://github.com/#readme"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/paras"]
+sources = ["src"]
+include = [
+    "active_site_hmm2.txt",
+    "active_site.txt",
+    "AMP-binding_full.hmm",
+    "AMP-binding_full.hmm.h3f",
+    "AMP-binding_full.hmm.h3i",
+    "AMP-binding_full.hmm.h3m",
+    "AMP-binding_full.hmm.h3p",
+    "AMP-binding_hmmer2.hmm",
+    "stachelhaus_hmm2.txt",
+    "stachelhaus.txt"
+]
+
+[project.scripts]
+paras = "paras.cli:main"
+
+# -------------------------
+# Hatch env + scripts
+# -------------------------
+[tool.hatch.envs.dev]
+features = ["dev"]
+python = "3.10"
+
+[tool.hatch.envs.dev.scripts]
+test = "pytest -q"
