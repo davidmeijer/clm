@@ -11,6 +11,11 @@ from itertools import chain
 import pandas as pd
 from torch.utils.data import Dataset
 from clm.functions import read_file
+from clm.graph_conditional import (
+    ConditionGraphCollate,
+    graph_to_condition_graph,
+    read_condition_vocab,
+)
 
 
 class SmilesDataset(Dataset):
@@ -63,6 +68,7 @@ class SmilesDataset(Dataset):
             if c not in ("smiles", "inchikey")
         ]
         self.n_descriptors = len(self.descriptor_names)
+        self.conditioning_type = "descriptors" if self.n_descriptors else "none"
 
         # convert dtypes of descriptors to floats
         for desc in self.descriptor_names:
@@ -90,8 +96,9 @@ class SmilesDataset(Dataset):
         return encoded, torch.Tensor(pd.to_numeric(row[self.descriptor_names]))
 
     def get_validation(self, n_smiles):
-        selected_indices = np.random.choice(self.validation_set.index, n_smiles)
-        selected_data = self.validation_set.loc[selected_indices]
+        source = self.validation_set if len(self.validation_set) else self.training_set
+        selected_indices = np.random.choice(source.index, n_smiles)
+        selected_data = source.loc[selected_indices]
         smiles = selected_data["smiles"]
         descriptors = torch.Tensor(selected_data[self.descriptor_names].to_numpy())
         tokenized = [self.vocabulary.tokenize(sm) for sm in smiles]
@@ -133,6 +140,123 @@ class SmilesCollate:
         padded = pad_sequence(encoded, padding_value=self.padding_token)
         lengths = [len(seq) for seq in encoded]
         return padded, lengths, torch.stack(descriptors)
+
+
+class GraphSequenceDataset(Dataset):
+    """
+    Dataset of sequences paired with graph-structured conditioning inputs.
+    """
+
+    def __init__(
+        self,
+        data,
+        max_len=None,
+        vocab_file=None,
+        condition_vocab_file=None,
+        training_split=0.9,
+        vocabulary_cls=None,
+    ):
+        if vocabulary_cls is None:
+            vocabulary_cls = Vocabulary
+
+        self.indices = np.arange(len(data))
+        self.samples = list(data)
+
+        sequences = [sample["smiles"] for sample in self.samples]
+        if vocab_file:
+            self.vocabulary = vocabulary_cls(vocab_file=vocab_file)
+        else:
+            vocab_kwargs = (
+                {"smiles": sequences}
+                if vocabulary_cls is Vocabulary
+                else {"selfies": sequences}
+            )
+            self.vocabulary = vocabulary_cls(**vocab_kwargs)
+
+        if condition_vocab_file is None:
+            raise ValueError(
+                "condition_vocab_file must be provided for graph-conditioned datasets"
+            )
+        self.condition_labels = read_condition_vocab(condition_vocab_file)
+        self.condition_name_to_idx = {
+            name: idx for idx, name in enumerate(self.condition_labels)
+        }
+        self.conditioning_type = "graph"
+        self.n_descriptors = 0
+
+        self.max_len = max_len
+        if self.max_len is not None:
+            valid_indices = [
+                idx
+                for idx, sample in enumerate(self.samples)
+                if len(self.vocabulary.tokenize(sample["smiles"])) <= self.max_len
+            ]
+            self.indices = np.array(valid_indices, dtype=int)
+
+        np.random.shuffle(self.indices)
+        ordered_samples = [self.samples[idx] for idx in self.indices]
+        self.samples = ordered_samples
+
+        n_sequences = len(self.samples)
+        border = int(n_sequences * training_split)
+        self.training_set = self.samples[:border]
+        self.validation_set = self.samples[border:]
+
+        self.graph_collate = ConditionGraphCollate()
+        self.collate = GraphSequenceCollate(self.vocabulary, self.graph_collate)
+
+    def __len__(self):
+        return len(self.training_set)
+
+    def __getitem__(self, idx):
+        sample = self.training_set[idx]
+        tokenized = self.vocabulary.tokenize(sample["smiles"])
+        encoded = self.vocabulary.encode(tokenized)
+        graph = graph_to_condition_graph(
+            sample["condition_graph"],
+            name_to_idx=self.condition_name_to_idx,
+        )
+        return encoded, graph
+
+    def get_validation(self, n_smiles):
+        source = self.validation_set if len(self.validation_set) else self.training_set
+        indices = np.random.choice(len(source), n_smiles)
+        selected = [source[idx] for idx in indices]
+        encoded = [
+            self.vocabulary.encode(self.vocabulary.tokenize(sample["smiles"]))
+            for sample in selected
+        ]
+        graphs = [
+            graph_to_condition_graph(
+                sample["condition_graph"],
+                name_to_idx=self.condition_name_to_idx,
+            )
+            for sample in selected
+        ]
+        return self.collate(list(zip(encoded, graphs)))
+
+    def __str__(self):
+        return (
+            "graph-conditioned dataset containing "
+            + str(len(self))
+            + " sequences with a vocabulary of "
+            + str(len(self.vocabulary))
+            + " characters"
+        )
+
+
+class GraphSequenceCollate:
+    """Collate tokenized sequences plus graph-conditioned inputs."""
+
+    def __init__(self, vocabulary, graph_collate):
+        self.padding_token = vocabulary.dictionary["<PAD>"]
+        self.graph_collate = graph_collate
+
+    def __call__(self, item):
+        encoded, graphs = zip(*item)
+        padded = pad_sequence(encoded, padding_value=self.padding_token)
+        lengths = [len(seq) for seq in encoded]
+        return padded, lengths, self.graph_collate(list(graphs))
 
 
 class SelfiesDataset(Dataset):

@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from clm.graph_conditional import BiosynthesisGraphEncoder
 
 
 class RNN(nn.Module):
@@ -620,19 +621,22 @@ class ConditionalRNN(nn.Module):
     def forward(self, inputs, hidden):
         return False
 
-    def loss(self, batch):
-        # extract the elements of a single minibatch
-        padded, lengths, descriptors = batch
-        # move to the gpu
-        padded, descriptors = padded.to(self.device), descriptors.to(self.device)
+    def _conditioning_to_descriptors(self, conditioning):
+        if conditioning is None:
+            raise AssertionError(
+                "conditioning data must be provided for a Conditional RNN model"
+            )
+        if not isinstance(conditioning, torch.Tensor):
+            raise TypeError(
+                "ConditionalRNN expects tensor conditioning data; "
+                f"got {type(conditioning).__name__}"
+            )
+        return conditioning.to(self.device)
 
-        # embed the padded sequence, along with the descriptors
+    def _loss_from_descriptors(self, padded, lengths, descriptors):
         embedded = self.embedding(padded)
-        # -> embedded: max_len x batch_size x emb_size
         if self.dropout.p > 0:
             embedded = self.dropout(embedded)
-        # cat descriptors along dimension of emb_size
-        # descriptors_repeating: max_len x batch_size x 1
         descriptors_repeating = descriptors.unsqueeze(0).repeat(max(lengths), 1, 1)
 
         if self.conditional_emb_l:
@@ -688,8 +692,13 @@ class ConditionalRNN(nn.Module):
         for char_idx in range(max_len - 1):
             loss += self.loss_fn(decoded[char_idx], targets[char_idx])
 
-        loss = loss.mean()
-        return loss
+        return loss.mean()
+
+    def loss(self, batch):
+        padded, lengths, conditioning = batch
+        padded = padded.to(self.device)
+        descriptors = self._conditioning_to_descriptors(conditioning)
+        return self._loss_from_descriptors(padded, lengths, descriptors)
 
     def sample(
         self,
@@ -700,12 +709,10 @@ class ConditionalRNN(nn.Module):
         return_smiles=True,
         return_losses=False,
     ):
-        assert (
-            descriptors is not None
-        ), "descriptors must be provided for sampling from a Conditional RNN model"
+        descriptors = self._conditioning_to_descriptors(descriptors)
         assert (
             n_sequences is None or len(descriptors) == n_sequences
-        ), "When providing descriptor values, either omit n_sequences or make them conform to the number of descriptors"
+        ), "When providing conditioning values, either omit n_sequences or make them conform to the number of conditions"
 
         # get start/stop tokens
         start_token = self.vocabulary.dictionary["SOS"]
@@ -795,3 +802,60 @@ class ConditionalRNN(nn.Module):
         h_0 = torch.stack(h_0s)
         c_0 = torch.stack(c_0s)
         return h_0, c_0
+
+
+class GraphConditionalRNN(ConditionalRNN):
+    def __init__(
+        self,
+        vocabulary,
+        condition_vocab_size,
+        rnn_type="LSTM",
+        n_layers=3,
+        embedding_size=128,
+        hidden_size=512,
+        dropout=0,
+        graph_label_emb_dim=64,
+        graph_hidden_dim=128,
+        graph_out_dim=256,
+        conditional_emb=False,
+        conditional_emb_l=True,
+        conditional_dec=False,
+        conditional_dec_l=True,
+        conditional_h=False,
+    ):
+        super().__init__(
+            vocabulary=vocabulary,
+            rnn_type=rnn_type,
+            n_layers=n_layers,
+            embedding_size=embedding_size,
+            hidden_size=hidden_size,
+            dropout=dropout,
+            num_descriptors=graph_out_dim,
+            conditional_emb=conditional_emb,
+            conditional_emb_l=conditional_emb_l,
+            conditional_dec=conditional_dec,
+            conditional_dec_l=conditional_dec_l,
+            conditional_h=conditional_h,
+        )
+        self.graph_encoder = BiosynthesisGraphEncoder(
+            vocab_size=condition_vocab_size,
+            label_emb_dim=graph_label_emb_dim,
+            hidden_dim=graph_hidden_dim,
+            out_dim=graph_out_dim,
+        )
+        self.to(self.device)
+
+    def _conditioning_to_descriptors(self, conditioning):
+        if conditioning is None:
+            raise AssertionError(
+                "conditioning data must be provided for a GraphConditionalRNN model"
+            )
+        if isinstance(conditioning, torch.Tensor):
+            return conditioning.to(self.device)
+        if hasattr(conditioning, "to"):
+            conditioning = conditioning.to(self.device)
+            return self.graph_encoder(conditioning)
+        raise TypeError(
+            "GraphConditionalRNN expects a ConditionGraphBatch or tensor "
+            f"conditioning input; got {type(conditioning).__name__}"
+        )

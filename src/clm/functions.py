@@ -624,16 +624,51 @@ def local_seed(seed):
         np.random.set_state(current_state)
 
 
-def load_dataset(representation, input_file, vocab_file):
-    from clm.datasets import SmilesDataset, SelfiesDataset
+def load_dataset(
+    representation,
+    input_file,
+    vocab_file,
+    conditioning_type="none",
+    condition_vocab_file=None,
+    training_split=0.9,
+):
+    from clm.conditioning import resolve_conditioning_type
+    from clm.datasets import (
+        GraphSequenceDataset,
+        SmilesDataset,
+        SelfiesDataset,
+        SelfiesVocabulary,
+    )
+    from clm.graph_conditional import read_graph_condition_file
 
     # Detect if we're dealing with a single or multiple input files
     multiple = not isinstance(input_file, (str, pathlib.Path))
     if not multiple:
         input_file = [input_file]
+    conditioning_type = resolve_conditioning_type(
+        conditional=conditioning_type != "none",
+        conditioning_type=conditioning_type,
+    )
+
+    if conditioning_type == "graph":
+        vocabulary_cls = SelfiesVocabulary if representation == "SELFIES" else None
+        data = []
+        for path in input_file:
+            data.extend(read_graph_condition_file(path))
+        return GraphSequenceDataset(
+            data=data,
+            vocab_file=vocab_file,
+            condition_vocab_file=condition_vocab_file,
+            training_split=training_split,
+            vocabulary_cls=vocabulary_cls,
+        )
+
     inputs = [read_file(f, smile_only=False) for f in input_file]
     inputs = pd.concat(inputs, axis=0)
     if representation == "SELFIES":
-        return SelfiesDataset(data=inputs, vocab_file=vocab_file)
-    else:
-        return SmilesDataset(data=inputs, vocab_file=vocab_file)
+        return SelfiesDataset(
+            data=inputs, vocab_file=vocab_file, training_split=training_split
+        )
+    return SmilesDataset(
+        data=inputs, vocab_file=vocab_file, training_split=training_split
+    )

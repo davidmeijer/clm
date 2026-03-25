@@ -7,8 +7,10 @@ from pathlib import Path
 
 import yaml
 import torch
+from clm.conditioning import resolve_conditioning_type
 from clm.datasets import Vocabulary
-from clm.models import RNN, ConditionalRNN
+from clm.graph_conditional import read_condition_vocab
+from clm.models import RNN, ConditionalRNN, GraphConditionalRNN
 
 
 @dataclass
@@ -51,6 +53,11 @@ class ModelConfig:
     cond_dec: bool
     cond_dec_l: bool
     cond_h: bool
+    conditioning_type: str = "none"
+    condition_vocab_path: Path | None = None
+    graph_label_emb_dim: int = 64
+    graph_hidden_dim: int = 128
+    graph_out_dim: int = 256
 
     def load_model(self, device: str | torch.device) -> RNN | ConditionalRNN:
         """
@@ -61,7 +68,28 @@ class ModelConfig:
         """ 
         vocab = Vocabulary(vocab_file=self.vocab_path)
 
-        if self.cond_enabled:
+        if self.conditioning_type == "graph":
+            if self.condition_vocab_path is None:
+                raise ValueError("condition_vocab_path is required for graph models")
+            condition_labels = read_condition_vocab(self.condition_vocab_path)
+            model = GraphConditionalRNN(
+                vocabulary=vocab,
+                condition_vocab_size=len(condition_labels),
+                rnn_type=self.rnn_type,
+                embedding_size=self.embedding_size,
+                hidden_size=self.hidden_size,
+                n_layers=self.n_layers,
+                dropout=self.dropout,
+                graph_label_emb_dim=self.graph_label_emb_dim,
+                graph_hidden_dim=self.graph_hidden_dim,
+                graph_out_dim=self.graph_out_dim,
+                conditional_emb=self.cond_emb,
+                conditional_emb_l=self.cond_emb_l,
+                conditional_dec=self.cond_dec,
+                conditional_dec_l=self.cond_dec_l,
+                conditional_h=self.cond_h,
+            )
+        elif self.cond_enabled:
             model = ConditionalRNN(
                 vocabulary=vocab,
                 rnn_type=self.rnn_type,
@@ -145,12 +173,22 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
     hidden_size     = model_params.get("hidden_size", 1024)
     n_layers        = model_params.get("n_layers", 3)
     dropout         = model_params.get("dropout", 0)
-    cond_enabled    = model_params.get("conditional", {}).get("enabled", False)
-    cond_emb        = model_params.get("conditional", {}).get("emb", False)
-    cond_emb_l      = model_params.get("conditional", {}).get("emb_l", True)
-    cond_dec        = model_params.get("conditional", {}).get("dec", False)
-    cond_dec_l      = model_params.get("conditional", {}).get("dec_l", True)
-    cond_h          = model_params.get("conditional", {}).get("h", False)
+    conditional_cfg = model_params.get("conditional", {})
+    cond_enabled    = conditional_cfg.get("enabled", False)
+    cond_emb        = conditional_cfg.get("emb", False)
+    cond_emb_l      = conditional_cfg.get("emb_l", True)
+    cond_dec        = conditional_cfg.get("dec", False)
+    cond_dec_l      = conditional_cfg.get("dec_l", True)
+    cond_h          = conditional_cfg.get("h", False)
+    conditioning_type = resolve_conditioning_type(
+        conditional=cond_enabled,
+        conditioning_type=conditional_cfg.get("type"),
+    )
+    cond_enabled = conditioning_type != "none"
+    graph_cfg = conditional_cfg.get("graph", {})
+    graph_label_emb_dim = graph_cfg.get("label_emb_dim", 64)
+    graph_hidden_dim = graph_cfg.get("hidden_dim", 128)
+    graph_out_dim = graph_cfg.get("out_dim", 256)
     
     # Get file name from dataset_path using Path, with file extension
     dataset_fn = Path(dataset_path).name if dataset_path is not None else None
@@ -161,7 +199,9 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
     # Check header of dataset file to determine number of descriptors
     keep_duplicates = config.get("preprocess", {}).get("keep_duplicates", False)
     num_descriptors = 0
-    if cond_enabled:
+    if conditioning_type == "graph":
+        num_descriptors = graph_out_dim
+    elif cond_enabled:
         dataset_full_path = os.path.join(model_dir, "prior", "raw", dataset_fn)
         with open(dataset_full_path, "r") as f:
             header = f.readline().strip()
@@ -221,6 +261,14 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
         for split in overlapping_splits:
             vocab_path = Path(vocab_dir_path) / found_vocab_splits[split]
             model_path = Path(model_dir_path) / found_model_splits[split]
+            condition_vocab_path = (
+                Path(vocab_dir_path)
+                / f"train_{dataset_name}_SMILES_{split}.condition_vocab.json"
+            )
+            if conditioning_type == "graph" and not condition_vocab_path.exists():
+                raise FileNotFoundError(
+                    f"Condition vocab file not found: {condition_vocab_path}"
+                )
 
             # Find test dataset file
             test_path = os.path.join(model_dir, str(enum_factor), "prior", "inputs", f"test0_{dataset_name}_SMILES_{split}.smi")
@@ -243,7 +291,12 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
                 cond_emb_l=cond_emb_l,
                 cond_dec=cond_dec,
                 cond_dec_l=cond_dec_l,
-                cond_h=cond_h
+                cond_h=cond_h,
+                conditioning_type=conditioning_type,
+                condition_vocab_path=condition_vocab_path if conditioning_type == "graph" else None,
+                graph_label_emb_dim=graph_label_emb_dim,
+                graph_hidden_dim=graph_hidden_dim,
+                graph_out_dim=graph_out_dim,
             ))
 
     return model_configs

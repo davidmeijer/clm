@@ -25,6 +25,22 @@ FINETUNE_DIR = FINETUNE_CFG.get("dir", "")
 FINETUNE_ORIGINAL_DATASET = FINETUNE_CFG.get("original_dataset_name", None)
 
 
+def _conditioning_type_from_config():
+    conditional_cfg = MODEL_PARAMS.get("conditional", {})
+    conditioning_type = conditional_cfg.get("type", None)
+    if conditioning_type is None:
+        conditioning_type = "descriptors" if conditional_cfg.get("enabled", False) else "none"
+    return conditioning_type
+
+
+CONDITIONING_TYPE = _conditioning_type_from_config()
+GRAPH_CFG = MODEL_PARAMS.get("conditional", {}).get("graph", {})
+PREPROCESS_OUTPUT = PATHS.get("preprocess_output_graph", PATHS["preprocess_output"]) if CONDITIONING_TYPE == "graph" else PATHS["preprocess_output"]
+TRAIN_INPUT_FILE = PATHS.get("train_file_graph", PATHS["train_file"]) if CONDITIONING_TYPE == "graph" else PATHS["train_file"]
+CONDITION_TEST_FILE = PATHS.get("condition_test_file_graph", PATHS.get("condition_test_file", PATHS["test0_file"])) if CONDITIONING_TYPE == "graph" else PATHS.get("condition_test_file", PATHS["test0_file"])
+CONDITION_VOCAB_FILE = PATHS.get("condition_vocab_file", "{output_dir}/{enum_factor}/prior/inputs/train_{dataset}_{repr}_{fold}.condition_vocab.json")
+
+
 def _init_model_param(wildcards):
     if not FINETUNE_ENABLED:
         return ""
@@ -88,7 +104,7 @@ rule preprocess:
     input:
         PATHS["dataset"]
     output:
-        processed=PATHS['preprocess_output'],
+        processed=PREPROCESS_OUTPUT,
         config_copy=PATHS['config_copy']
     resources:
         mem_mb=12000,
@@ -101,6 +117,7 @@ rule preprocess:
         '--min-heavy-atoms {config[preprocess][min_heavy_atoms]} '
         '--valid-atoms {config[preprocess][valid_atoms]} '
         '--max-input-smiles {config[max_input_smiles]} '
+        f'--conditioning_type {CONDITIONING_TYPE} '
         f'{"--keep_duplicates" if config["preprocess"]["keep_duplicates"] else ""}'
         f'{"--no-neutralise " if not config["preprocess"]["neutralise"] else ""} '
         f'{"--remove-rare " if config["preprocess"]["remove_rare"] else ""} '
@@ -116,12 +133,14 @@ rule create_training_sets:
     are similar to a randomly selected seed smile.
     """
     input:
-        config['paths']['preprocess_output']
+        PREPROCESS_OUTPUT
     output:
-        train_file = PATHS['train_file'],
+        train_file = TRAIN_INPUT_FILE,
         vocab_file = PATHS['vocab_file'],
         train0_file = PATHS['train0_file'],
-        test0_file = PATHS['test0_file']
+        test0_file = PATHS['test0_file'],
+        condition_test_file = CONDITION_TEST_FILE,
+        condition_vocab_file = CONDITION_VOCAB_FILE
     resources:
         mem_mb=20000,
         runtime=60,
@@ -132,6 +151,8 @@ rule create_training_sets:
         '--train-file {output.train_file} '
         '--vocab-file {output.vocab_file} '
         '--test0-file {output.test0_file} '
+        '--condition-test-file {output.condition_test_file} '
+        '--condition-vocab-file {output.condition_vocab_file} '
         '--enum-factor {wildcards.enum_factor} '
         '--folds {FOLDS} '
         '--which-fold {wildcards.fold} '
@@ -139,6 +160,7 @@ rule create_training_sets:
         '--min-tc {config[min_tc]} '
         '--seed {config[random_seed]} '
         '--max-input-smiles {config[max_input_smiles]} '
+        f'--conditioning_type {CONDITIONING_TYPE} '
 
 
 rule add_carbon:
@@ -193,8 +215,9 @@ rule train_models_RNN:
     smiles and write them out to `smiles_file`.
     """
     input:
-        input_file = PATHS['train_file'],
-        vocab_file = PATHS['vocab_file']
+        input_file = TRAIN_INPUT_FILE,
+        vocab_file = PATHS['vocab_file'],
+        condition_vocab_file = CONDITION_VOCAB_FILE
     output:
         model_file=PATHS['model_file'],
         loss_file=PATHS['loss_file']
@@ -222,9 +245,14 @@ rule train_models_RNN:
         '--sample_mols {MODEL_PARAMS[sample_mols]} '
         '--input_file {input.input_file} '
         '--vocab_file {input.vocab_file} '
+        '--condition_vocab_file {input.condition_vocab_file} '
         '--model_file {output.model_file} '
         '--loss_file {output.loss_file} '
         '{params.init_model_file} '
+        f'--conditioning_type {CONDITIONING_TYPE} '
+        f'--graph_label_emb_dim {GRAPH_CFG.get("label_emb_dim", 64)} '
+        f'--graph_hidden_dim {GRAPH_CFG.get("hidden_dim", 128)} '
+        f'--graph_out_dim {GRAPH_CFG.get("out_dim", 256)} '
         f'{"--conditional" if config["model_params"]["conditional"]["enabled"] else ""} '
         f'{"--conditional_emb" if config["model_params"]["conditional"]["emb"] else ""} '
         f'{"--conditional_emb_l" if config["model_params"]["conditional"]["emb_l"] else ""} '
@@ -240,7 +268,8 @@ rule sample_molecules_RNN:
     input:
         model_file = PATHS['model_file'],
         vocab_file = PATHS['vocab_file'],
-        heldout_file = PATHS['test0_file']
+        heldout_file = CONDITION_TEST_FILE,
+        condition_vocab_file = CONDITION_VOCAB_FILE
     output:
         output_file = PATHS['input_file']
     resources:
@@ -261,6 +290,11 @@ rule sample_molecules_RNN:
         '--vocab_file {input.vocab_file} '
         '--model_file {input.model_file} '
         '--output_file {output.output_file} '
+        '--condition_vocab_file {input.condition_vocab_file} '
+        f'--conditioning_type {CONDITIONING_TYPE} '
+        f'--graph_label_emb_dim {GRAPH_CFG.get("label_emb_dim", 64)} '
+        f'--graph_hidden_dim {GRAPH_CFG.get("hidden_dim", 128)} '
+        f'--graph_out_dim {GRAPH_CFG.get("out_dim", 256)} '
         f'{"--conditional" if config["model_params"]["conditional"]["enabled"] else ""} '
         f'{"--conditional_emb" if config["model_params"]["conditional"]["emb"] else ""} '
         f'{"--conditional_emb_l" if config["model_params"]["conditional"]["emb_l"] else ""} '

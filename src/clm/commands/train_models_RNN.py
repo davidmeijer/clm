@@ -8,7 +8,9 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from rdkit import rdBase
 from clm.datasets import Vocabulary
-from clm.models import RNN, ConditionalRNN
+from clm.conditioning import resolve_conditioning_type
+from clm.graph_conditional import read_condition_vocab
+from clm.models import RNN, ConditionalRNN, GraphConditionalRNN
 from clm.loggers import EarlyStopping, track_loss, print_update
 from clm.functions import write_smiles, load_dataset
 
@@ -125,6 +127,36 @@ def add_args(parser):
         "--conditional_h",
         action="store_true",
         help="Add descriptor in hidden and cell state",
+    )
+    parser.add_argument(
+        "--conditioning_type",
+        type=str,
+        default="none",
+        help="Conditioning mode (one of: none/descriptors/graph)",
+    )
+    parser.add_argument(
+        "--condition_vocab_file",
+        type=str,
+        default=None,
+        help="Condition-label vocabulary file used for graph conditioning",
+    )
+    parser.add_argument(
+        "--graph_label_emb_dim",
+        type=int,
+        default=64,
+        help="Label embedding size for graph conditioning",
+    )
+    parser.add_argument(
+        "--graph_hidden_dim",
+        type=int,
+        default=128,
+        help="Hidden size for graph-conditioning GNN layers",
+    )
+    parser.add_argument(
+        "--graph_out_dim",
+        type=int,
+        default=256,
+        help="Output size of the graph-conditioning encoder",
     )
     return parser
 
@@ -248,6 +280,11 @@ def train_models_RNN(
     conditional_dec=False,
     conditional_dec_l=True,
     conditional_h=False,
+    conditioning_type="none",
+    condition_vocab_file=None,
+    graph_label_emb_dim=64,
+    graph_hidden_dim=128,
+    graph_out_dim=256,
 ):
 
     os.makedirs(os.path.dirname(os.path.abspath(model_file)), exist_ok=True)
@@ -271,9 +308,44 @@ def train_models_RNN(
             _write_vocab_tokens(merged_tokens, vocab_file)
 
     # Load dataset/model after vocab merge so vocabulary length matches
-    dataset = load_dataset(representation, input_file, vocab_file)
+    conditioning_type = resolve_conditioning_type(
+        conditional=conditional,
+        conditioning_type=conditioning_type,
+    )
+    conditional = conditioning_type != "none"
 
-    if conditional:
+    dataset = load_dataset(
+        representation,
+        input_file,
+        vocab_file,
+        conditioning_type=conditioning_type,
+        condition_vocab_file=condition_vocab_file,
+    )
+
+    if conditioning_type == "graph":
+        if condition_vocab_file is None:
+            raise ValueError(
+                "condition_vocab_file must be provided for graph-conditioned training"
+            )
+        condition_labels = read_condition_vocab(condition_vocab_file)
+        model = GraphConditionalRNN(
+            dataset.vocabulary,
+            condition_vocab_size=len(condition_labels),
+            rnn_type=rnn_type,
+            n_layers=n_layers,
+            embedding_size=embedding_size,
+            hidden_size=hidden_size,
+            dropout=dropout,
+            graph_label_emb_dim=graph_label_emb_dim,
+            graph_hidden_dim=graph_hidden_dim,
+            graph_out_dim=graph_out_dim,
+            conditional_emb=conditional_emb,
+            conditional_emb_l=conditional_emb_l,
+            conditional_dec=conditional_dec,
+            conditional_dec_l=conditional_dec_l,
+            conditional_h=conditional_h,
+        )
+    elif conditional:
         model = ConditionalRNN(
             dataset.vocabulary,
             rnn_type=rnn_type,
@@ -395,4 +467,9 @@ def main(args):
         conditional_dec=args.conditional_dec,
         conditional_dec_l=args.conditional_dec_l,
         conditional_h=args.conditional_h,
+        conditioning_type=args.conditioning_type,
+        condition_vocab_file=args.condition_vocab_file,
+        graph_label_emb_dim=args.graph_label_emb_dim,
+        graph_hidden_dim=args.graph_hidden_dim,
+        graph_out_dim=args.graph_out_dim,
     )

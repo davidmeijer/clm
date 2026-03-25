@@ -2,12 +2,20 @@ import logging
 import itertools
 from tqdm import tqdm
 import numpy as np
+import pandas as pd
 from rdkit.Chem import AllChem
 from rdkit.DataStructs import FingerprintSimilarity
 from selfies import encoder as selfies_encoder
 from selfies.exceptions import EncoderError
+from clm.conditioning import resolve_conditioning_type
 from clm.functions import read_file, write_smiles, clean_mols
 from clm.datasets import vocabulary_from_representation
+from clm.graph_conditional import (
+    build_condition_vocab,
+    read_graph_condition_file,
+    write_condition_vocab,
+    write_graph_condition_file,
+)
 from clm.util.SmilesEnumerator import SmilesEnumerator
 
 
@@ -41,6 +49,18 @@ def add_args(parser):
         type=str,
         required=True,
         help="Output test smiles file path with no augmentation ({fold} in path is populated automatically)",
+    )
+    parser.add_argument(
+        "--condition-test-file",
+        type=str,
+        default=None,
+        help="Output heldout conditioning file path ({fold} in path is populated automatically)",
+    )
+    parser.add_argument(
+        "--condition-vocab-file",
+        type=str,
+        default=None,
+        help="Output graph-condition vocabulary file path ({fold} in path is populated automatically)",
     )
     parser.add_argument(
         "--enum-factor",
@@ -89,6 +109,12 @@ def add_args(parser):
         type=int,
         default=None,
         help="Maximum smiles to read from input file (useful for testing)",
+    )
+    parser.add_argument(
+        "--conditioning_type",
+        type=str,
+        default="none",
+        help="Conditioning mode (one of: none/descriptors/graph)",
     )
 
     return parser
@@ -151,6 +177,8 @@ def create_training_sets(
     train0_file=None,
     train_file=None,
     test0_file=None,
+    condition_test_file=None,
+    condition_vocab_file=None,
     vocab_file=None,
     folds=10,
     which_fold=0,
@@ -160,29 +188,81 @@ def create_training_sets(
     n_molecules=100,
     max_tries=200,
     max_input_smiles=None,
+    conditioning_type="none",
 ):
-    logger.info("reading input SMILES ...")
-    data = read_file(
-        smiles_file=input_file, smile_only=True, max_lines=max_input_smiles
+    conditioning_type = resolve_conditioning_type(
+        conditional=False,
+        conditioning_type=conditioning_type,
     )
-    smiles = data["smiles"]
+
+    if conditioning_type == "graph" and representation != "SMILES":
+        raise ValueError("Graph conditioning currently only supports SMILES")
+
+    def write_plain_samples(samples, output_path):
+        metadata = pd.DataFrame(
+            [{k: v for k, v in sample.items() if k != "condition_graph"} for sample in samples]
+        )
+        if "inchikey" not in metadata.columns:
+            metadata["inchikey"] = pd.Series(dtype=str)
+        write_smiles(
+            [sample["smiles"] for sample in samples],
+            output_path,
+            add_inchikeys=True,
+            extra_data=metadata,
+        )
+
+    def maybe_write_condition_test(samples, output_path):
+        if output_path is None:
+            return
+        if conditioning_type == "graph":
+            write_graph_condition_file(str(output_path).format(fold=which_fold), samples)
+        else:
+            metadata = pd.DataFrame(samples)
+            if "inchikey" not in metadata.columns:
+                metadata["inchikey"] = pd.Series(dtype=str)
+            write_smiles(
+                [sample["smiles"] for sample in samples],
+                str(output_path).format(fold=which_fold),
+                add_inchikeys=True,
+                extra_data=metadata,
+            )
+
+    logger.info("reading input SMILES ...")
+    if conditioning_type == "graph":
+        data = read_graph_condition_file(input_file, max_lines=max_input_smiles)
+        smiles = [sample["smiles"] for sample in data]
+    else:
+        data = read_file(
+            smiles_file=input_file, smile_only=True, max_lines=max_input_smiles
+        )
+        smiles = data["smiles"]
 
     if min_tc > 0:
         logger.info(f"picking {n_molecules} molecules with min_tc={min_tc} ...")
-        smiles = get_similar_smiles(
+        selected_smiles = get_similar_smiles(
             smiles,
             min_tc=min_tc,
             n_molecules=n_molecules,
             max_tries=max_tries,
             representation=representation,
         )
+        if conditioning_type == "graph":
+            sample_by_smiles = {sample["smiles"]: sample for sample in data}
+            data = [sample_by_smiles[sm] for sm in selected_smiles]
+            smiles = selected_smiles
+        else:
+            smiles = selected_smiles
 
     generate_test_data = folds > 1
     if generate_test_data:
-        np.random.shuffle(smiles)
-        folds = np.array_split(smiles, folds)
+        if conditioning_type == "graph":
+            np.random.shuffle(data)
+            folds = [list(chunk) for chunk in np.array_split(data, folds)]
+        else:
+            np.random.shuffle(smiles)
+            folds = np.array_split(smiles, folds)
     else:
-        folds = [smiles]
+        folds = [data if conditioning_type == "graph" else smiles]
 
     if enum_factor > 0:
         enum_folds = [np.array([]) for i in range(len(folds))]
@@ -190,7 +270,8 @@ def create_training_sets(
         for idx, fold in enumerate(folds):
             enum = []
             max_tries = 200  # randomized SMILES to generate for each input structure
-            for sm_idx, sm in enumerate(tqdm(fold)):
+            for sm_idx, sample in enumerate(tqdm(fold)):
+                sm = sample["smiles"] if conditioning_type == "graph" else sample
                 tries = []
                 for try_idx in range(max_tries):
                     try:
@@ -202,7 +283,11 @@ def create_training_sets(
                             break
                     except AttributeError:
                         continue
-                enum.extend(tries)
+                if conditioning_type == "graph":
+                    for randomized_smiles in tries:
+                        enum.append({**sample, "smiles": randomized_smiles})
+                else:
+                    enum.extend(tries)
             enum_folds[idx] = enum
     else:
         enum_folds = folds
@@ -220,7 +305,7 @@ def create_training_sets(
         test0 = []
         test = []
 
-    if representation == "SELFIES":
+    if representation == "SELFIES" and conditioning_type != "graph":
         logger.info("converting SMILES strings to SELFIES ...")
 
         train0_out = []
@@ -260,29 +345,52 @@ def create_training_sets(
                 except EncoderError:
                     pass
             test = test_out
+    if conditioning_type == "graph":
+        write_plain_samples(train0, str(train0_file).format(fold=which_fold))
+        write_graph_condition_file(str(train_file).format(fold=which_fold), train)
+        maybe_write_condition_test(test0, condition_test_file)
 
-    write_smiles(
-        train0,
-        str(train0_file).format(fold=which_fold),
-        add_inchikeys=True,
-        extra_data=data,
-    )
-    write_smiles(
-        train,
-        str(train_file).format(fold=which_fold),
-        add_inchikeys=True,
-        extra_data=data,
-    )
-    vocabulary = vocabulary_from_representation(representation, train)
-    logger.info("vocabulary of {} characters".format(len(vocabulary)))
-    vocabulary.write(output_file=str(vocab_file).format(fold=which_fold))
-    if test0 is not None:
+        vocabulary = vocabulary_from_representation(
+            representation, [sample["smiles"] for sample in train]
+        )
+        logger.info("vocabulary of {} characters".format(len(vocabulary)))
+        vocabulary.write(output_file=str(vocab_file).format(fold=which_fold))
+
+        if condition_vocab_file is not None:
+            labels = build_condition_vocab(train)
+            write_condition_vocab(str(condition_vocab_file).format(fold=which_fold), labels)
+
+        if test0 is not None:
+            write_plain_samples(test0, str(test0_file).format(fold=which_fold))
+    else:
         write_smiles(
-            test0,
-            str(test0_file).format(fold=which_fold),
+            train0,
+            str(train0_file).format(fold=which_fold),
             add_inchikeys=True,
             extra_data=data,
         )
+        write_smiles(
+            train,
+            str(train_file).format(fold=which_fold),
+            add_inchikeys=True,
+            extra_data=data,
+        )
+        vocabulary = vocabulary_from_representation(representation, train)
+        logger.info("vocabulary of {} characters".format(len(vocabulary)))
+        vocabulary.write(output_file=str(vocab_file).format(fold=which_fold))
+        if test0 is not None:
+            write_smiles(
+                test0,
+                str(test0_file).format(fold=which_fold),
+                add_inchikeys=True,
+                extra_data=data,
+            )
+            maybe_write_condition_test(test0, condition_test_file)
+        if condition_vocab_file is not None:
+            write_condition_vocab(
+                str(condition_vocab_file).format(fold=which_fold),
+                ["<UNK>"],
+            )
 
 
 def main(args):
@@ -291,6 +399,8 @@ def main(args):
         train0_file=args.train0_file,
         train_file=args.train_file,
         test0_file=args.test0_file,
+        condition_test_file=args.condition_test_file,
+        condition_vocab_file=args.condition_vocab_file,
         vocab_file=args.vocab_file,
         folds=args.folds,
         which_fold=args.which_fold,
@@ -300,4 +410,5 @@ def main(args):
         n_molecules=args.n_molecules,
         max_tries=args.max_tries,
         max_input_smiles=args.max_input_smiles,
+        conditioning_type=args.conditioning_type,
     )
