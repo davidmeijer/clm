@@ -68,7 +68,7 @@ def _submit_via_slurm(slurm_args: argparse.Namespace, cli_argv: list[str]) -> No
     python = sys.executable
 
     # Get output directory from CLI args (fallback to cwd for commands without --out-dir)
-    output_dir = os.path.abspath(getattr(slurm_args, "out", os.getcwd()))
+    output_dir = os.path.abspath(getattr(slurm_args, "out_dir", os.getcwd()))
 
     # Ensure log directory exists
     os.makedirs(os.path.join(output_dir, "logs"), exist_ok=True)
@@ -108,7 +108,7 @@ echo "CPUs: ${{OMP_NUM_THREADS:-{cpus}}}; Mem limit: {mem}"
 """
     
     sbatch_cmd.extend(["--export", f"ALL,OMP_NUM_THREADS={cpus},MKL_NUM_THREADS={cpus},PYTHONUNBUFFERED=1"])
-    sbatch_cmd.append("--wrap", wrap_script)
+    sbatch_cmd.extend(["--wrap", wrap_script])
 
     if slurm_args.dry_run:
         print("[DRY RUN] Would submit Harvest job to slurm with:")
