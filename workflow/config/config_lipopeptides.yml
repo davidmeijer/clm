@@ -92,7 +92,7 @@ model_params:
     # - none: unconditional model
     # - descriptors: numeric columns in the input CSV/TSV after the smiles column
     # - graph: JSONL input with `smiles` and `condition_graph`
-    type: descriptors
+    type: graph
 
     # Is the conditional model enabled?
     # Legacy flag kept for backward compatibility with older configs.

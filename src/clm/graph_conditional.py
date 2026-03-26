@@ -27,15 +27,20 @@ def load_data_sample(json_line: str) -> dict:
     obj = json.loads(json_line)
     if "smiles" not in obj:
         raise KeyError("Expected graph-conditioned input to contain a 'smiles' field")
+    if "condition_graph" not in obj and "graph" in obj:
+        obj["condition_graph"] = obj.pop("graph")
     if "condition_graph" not in obj:
         raise KeyError(
             "Expected graph-conditioned input to contain a 'condition_graph' field"
         )
+    obj["condition_graph"] = normalize_condition_graph(obj["condition_graph"])
     return obj
 
 
 def read_graph_condition_file(path: str, max_lines: int | None = None) -> list[dict]:
     """Read graph-conditioned samples from JSONL."""
+    if max_lines == 0:
+        max_lines = None
     rows = []
     with _open_text(path, "rt") as handle:
         for idx, line in enumerate(handle):
@@ -54,6 +59,56 @@ def write_graph_condition_file(path: str, rows: list[dict]) -> None:
     with _open_text(path, "wt") as handle:
         for row in rows:
             handle.write(json.dumps(row) + "\n")
+
+
+def normalize_condition_graph(graph_data: dict) -> dict:
+    """
+    Normalize graph-conditioned input into the schema expected by training.
+
+    - Empty graphs are replaced with a single unknown node.
+    - Nodes without an identified label are mapped to `<UNK>`.
+    """
+    if not isinstance(graph_data, dict):
+        raise TypeError("Condition graph must be a dictionary")
+
+    normalized = dict(graph_data)
+    nodes = [dict(node) for node in normalized.get("nodes", [])]
+    links = list(normalized.get("links", normalized.get("edges", [])))
+
+    if not nodes:
+        normalized["nodes"] = [{"id": 0, "name": "<UNK>"}]
+        normalized["links"] = []
+        normalized.pop("edges", None)
+        return normalized
+
+    normalized_nodes = []
+    for idx, node in enumerate(nodes):
+        normalized_node = dict(node)
+        if "id" not in normalized_node:
+            normalized_node["id"] = idx
+
+        name = normalized_node.get("name", None)
+        if isinstance(name, str) and name:
+            normalized_nodes.append(normalized_node)
+            continue
+
+        candidates = [
+            {"name": cand["name"], "weight": cand.get("weight", 0.0)}
+            for cand in normalized_node.get("name_candidates", [])
+            if isinstance(cand, dict) and cand.get("name")
+        ]
+        if candidates:
+            normalized_node["name_candidates"] = candidates
+        else:
+            normalized_node.pop("name_candidates", None)
+            normalized_node["name"] = "<UNK>"
+
+        normalized_nodes.append(normalized_node)
+
+    normalized["nodes"] = normalized_nodes
+    normalized["links"] = links
+    normalized.pop("edges", None)
+    return normalized
 
 
 def normalize_candidates(cands: list[dict]) -> list[dict]:

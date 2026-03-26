@@ -12,18 +12,9 @@ def _write_graph_dataset(path: Path) -> None:
     rows = [
         {
             "smiles": "CCO",
-            "condition_graph": {
-                "nodes": [
-                    {"id": 0, "name": "Ala"},
-                    {
-                        "id": 1,
-                        "name_candidates": [
-                            {"name": "Ser", "weight": 0.7},
-                            {"name": "Thr", "weight": 0.3},
-                        ],
-                    },
-                ],
-                "links": [{"source": 0, "target": 1}],
+            "graph": {
+                "nodes": [],
+                "links": [],
             },
         },
         {
@@ -86,6 +77,9 @@ def test_graph_conditioned_preprocess_and_split(tmp_path):
     processed_rows = read_graph_condition_file(processed)
     assert len(processed_rows) == 6
     assert all("inchikey" in row for row in processed_rows)
+    assert "condition_graph" in processed_rows[0]
+    assert "graph" not in processed_rows[0]
+    assert processed_rows[0]["condition_graph"]["nodes"] == [{"id": 0, "name": "<UNK>"}]
 
     set_seed(5831)
     create_training_sets.create_training_sets(
@@ -112,7 +106,7 @@ def test_graph_conditioned_preprocess_and_split(tmp_path):
     assert train_rows
     assert heldout_rows
     assert "<UNK>" in condition_vocab
-    assert "Ala" in condition_vocab
+    assert "Ser" in condition_vocab
     assert set(["smiles", "inchikey"]).issubset(train0.columns)
     assert set(["smiles", "inchikey"]).issubset(test0.columns)
 

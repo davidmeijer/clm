@@ -13,26 +13,32 @@
       - (2S,6R)-diamino-(5R,7)-dihydroxy-heptanoic acid
 
 - name: 5,5,5-trichloroleucine
-  smiles: "CCC(=O)CCCCCC(N)C(=O)O"
+  smiles: "CC(CC(C(=O)O)N)C(Cl)(Cl)Cl"
   props:
     origin: paras
     collapsed:
       - (4S)-5,5,5-trichloroleucine
-      - 2S-amino-8-oxodecanoic acid
 
-- name: 4-methylhex-2-enoic_acid
-  smiles: "CCC(C)C=CC(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - (E)-4-methylhex-2-enoic acid
+# - name: 2-amino-8-oxodecanoic acid
+#   smiles: "CCC(=O)CCCCCC(N)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 2S-amino-8-oxodecanoic acid
 
-- name: 2-amino-4-decenoic_acid
-  smiles: "CCCCCC=CCC(N)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - (S,E)-2-amino-4-decenoic acid
+# - name: 4-methylhex-2-enoic_acid
+#   smiles: "CCC(C)C=CC(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - (E)-4-methylhex-2-enoic acid
+
+# - name: 2-amino-4-decenoic_acid
+#   smiles: "CCCCCC=CCC(N)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - (S,E)-2-amino-4-decenoic acid
 
 - name: 1-(1,1-dimethylallyl)-tryptophan
   smiles: "C=CC(C)(C)n1cc(CC(N)C(=O)O)c2ccccc21"
@@ -55,12 +61,12 @@
     collapsed:
       - 1-pyrroline-5-carboxylic acid
 
-- name: 10,14-dimethyloctadecanoic_acid
-  smiles: "CCCCC(C)CCCC(C)CCCCCCCCC(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 10,14-dimethyloctadecanoic acid
+# - name: 10,14-dimethyloctadecanoic_acid
+#   smiles: "CCCCC(C)CCCC(C)CCCCCCCCC(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 10,14-dimethyloctadecanoic acid
 
 - name: 2,3-diaminobutyric_acid
   smiles: "CC(N)C(N)C(=O)O"
@@ -91,12 +97,12 @@
     collapsed:
       - 2,3-dihydroxybenzoic acid
 
-- name: 2,3-dihydroxyhexadecanoic_acid
-  smiles: "CCCCCCCCCCCCCC(O)C(O)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 2,3-dihydroxyhexadecanoic acid
+# - name: 2,3-dihydroxyhexadecanoic_acid
+#   smiles: "CCCCCCCCCCCCCC(O)C(O)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 2,3-dihydroxyhexadecanoic acid
 
 - name: 2,4-diaminobutyric_acid
   smiles: "NCCC(N)C(=O)O"
@@ -232,33 +238,33 @@
     collapsed:
       - 2S-amino-9,10-epoxy-8-oxodecanoic acid
 
-- name: aminodecanoic_acid
-  smiles: "CCCCCCCCC(N)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 2S-aminodecanoic acid
+# - name: aminodecanoic_acid
+#   smiles: "CCCCCCCCC(N)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 2S-aminodecanoic acid
 
-- name: aminododecanoic_acid
-  smiles: "CCCCCCCCCCC(N)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 2S-aminododecanoic acid
+# - name: aminododecanoic_acid
+#   smiles: "CCCCCCCCCCC(N)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 2S-aminododecanoic acid
 
-- name: aminooctanoic_acid
-  smiles: "CCCCCCC(N)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 2S-aminooctanoic acid
+# - name: aminooctanoic_acid
+#   smiles: "CCCCCCC(N)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 2S-aminooctanoic acid
 
-- name: hydroxyisocaproic_acid
-  smiles: "CC(C)CC(O)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 2S-hydroxyisocaproic acid
+# - name: hydroxyisocaproic_acid
+#   smiles: "CC(C)CC(O)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 2S-hydroxyisocaproic acid
 
 - name: methyl-3-oxobutyrine
   smiles: "CC(=O)C(C)(N)C(=O)O"
@@ -535,12 +541,12 @@
     collapsed:
       - 4-amino-2-hydroxy-3-isopropoxybenzoic acid
 
-- name: 4-aminobutyric_acid
-  smiles: "NCCCC(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - 4-aminobutyric acid
+# - name: 4-aminobutyric_acid
+#   smiles: "NCCCC(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - 4-aminobutyric acid
 
 - name: 4-hydroxy-3-nitrobenzoic_acid
   smiles: "O=C(O)c1ccc(O)c([N+](=O)[O-])c1"
@@ -916,12 +922,12 @@
     collapsed:
       - S-beta-hydroxyenduracididine
 
-- name: acetic_acid
-  smiles: "CC(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - acetic acid
+# - name: acetic_acid
+#   smiles: "CC(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - acetic acid
 
 - name: alanine
   smiles: "CC(N)C(=O)O"
@@ -1055,12 +1061,12 @@
     collapsed:
       - betaine
 
-- name: butyric_acid
-  smiles: "CCCC(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - butyric acid
+# - name: butyric_acid
+#   smiles: "CCCC(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - butyric acid
 
 - name: caffeic_acid
   smiles: "O=C(O)C=Cc1ccc(O)c(O)c1"
@@ -1269,12 +1275,12 @@
     collapsed:
       - kynurenine
 
-- name: lactic_acid
-  smiles: "CC(O)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - lactic acid
+# - name: lactic_acid
+#   smiles: "CC(O)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - lactic acid
 
 - name: leucine
   smiles: "CC(C)CC(N)C(=O)O"
@@ -1291,12 +1297,12 @@
     collapsed:
       - leucinol
 
-- name: linoleic_acid
-  smiles: "CCCCCC=CCC=CCCCCCCCC(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - linoleic acid
+# - name: linoleic_acid
+#   smiles: "CCCCCC=CCC=CCCCCCCCC(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - linoleic acid
 
 - name: lysine
   smiles: "NCCCCC(N)C(=O)O"
@@ -1305,12 +1311,12 @@
     collapsed:
       - lysine
 
-- name: malic_acid
-  smiles: "O=C(O)CC(O)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - malic acid
+# - name: malic_acid
+#   smiles: "O=C(O)CC(O)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - malic acid
 
 - name: malonamate
   smiles: "NC(=O)CC(=O)O"
@@ -1453,12 +1459,12 @@
     collapsed:
       - pyrrole-2-carboxylic acid
 
-- name: pyruvic_acid
-  smiles: "CC(=O)C(=O)O"
-  props:
-    origin: paras
-    collapsed:
-      - pyruvic acid
+# - name: pyruvic_acid
+#   smiles: "CC(=O)C(=O)O"
+#   props:
+#     origin: paras
+#     collapsed:
+#       - pyruvic acid
 
 - name: quinoxaline-2-carboxylic_acid
   smiles: "O=C(O)c1cnc2ccccc2n1"

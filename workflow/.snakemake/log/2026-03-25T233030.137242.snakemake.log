@@ -1,0 +1,49 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                     count
+--------------------  -------
+create_training_sets        3
+preprocess                  1
+train_models_RNN            3
+total                       7
+
+Select jobs to execute...
+
+[Wed Mar 25 23:30:30 2026]
+rule preprocess:
+    input: /Users/davidmeijer/Desktop/20260325_harvest/real_lipopeptides_graph_conditioning.jsonl
+    output: /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning.jsonl, /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning_config.yaml
+    jobid: 5
+    reason: Missing output files: /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning.jsonl
+    wildcards: output_dir=/Users/davidmeijer/Desktop/HARVEST_test, dataset=real_lipopeptides_graph_conditioning
+    resources: tmpdir=/var/folders/3m/j07yfb1n1zl_ztwh3wsqr0s80000gn/T, mem_mb=12000, mem_mib=11445, runtime=30
+
+[Wed Mar 25 23:30:33 2026]
+Finished job 5.
+1 of 55 steps (2%) done
+Select jobs to execute...
+
+[Wed Mar 25 23:30:33 2026]
+rule create_training_sets:
+    input: /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning.jsonl
+    output: /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.jsonl, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.vocabulary, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train0_real_lipopeptides_graph_conditioning_SMILES_1.smi, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test0_real_lipopeptides_graph_conditioning_SMILES_1.smi, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test_condition_real_lipopeptides_graph_conditioning_SMILES_1.jsonl, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.condition_vocab.json
+    jobid: 6
+    reason: Missing output files: /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test0_real_lipopeptides_graph_conditioning_SMILES_1.smi, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.condition_vocab.json, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test_condition_real_lipopeptides_graph_conditioning_SMILES_1.jsonl, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train0_real_lipopeptides_graph_conditioning_SMILES_1.smi, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.vocabulary, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.jsonl; Input files updated by another job: /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning.jsonl
+    wildcards: output_dir=/Users/davidmeijer/Desktop/HARVEST_test, enum_factor=3, dataset=real_lipopeptides_graph_conditioning, repr=SMILES, fold=1
+    resources: tmpdir=/var/folders/3m/j07yfb1n1zl_ztwh3wsqr0s80000gn/T, mem_mb=20000, mem_mib=19074, runtime=60
+
+[Wed Mar 25 23:30:34 2026]
+Error in rule create_training_sets:
+    jobid: 6
+    input: /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning.jsonl
+    output: /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.jsonl, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.vocabulary, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train0_real_lipopeptides_graph_conditioning_SMILES_1.smi, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test0_real_lipopeptides_graph_conditioning_SMILES_1.smi, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test_condition_real_lipopeptides_graph_conditioning_SMILES_1.jsonl, /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.condition_vocab.json
+    shell:
+        clm create_training_sets --input-file /Users/davidmeijer/Desktop/HARVEST_test/prior/raw/real_lipopeptides_graph_conditioning.jsonl --train0-file /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train0_real_lipopeptides_graph_conditioning_SMILES_1.smi --train-file /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.jsonl --vocab-file /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.vocabulary --test0-file /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test0_real_lipopeptides_graph_conditioning_SMILES_1.smi --condition-test-file /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/test_condition_real_lipopeptides_graph_conditioning_SMILES_1.jsonl --condition-vocab-file /Users/davidmeijer/Desktop/HARVEST_test/3/prior/inputs/train_real_lipopeptides_graph_conditioning_SMILES_1.condition_vocab.json --enum-factor 3 --folds 3 --which-fold 1 --representation SMILES --min-tc 0 --seed 5831 --max-input-smiles 0 --conditioning_type graph 
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2026-03-25T233030.137242.snakemake.log

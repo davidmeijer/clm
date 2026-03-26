@@ -264,9 +264,16 @@ def write_smiles(smiles, smiles_file, add_inchikeys=False, extra_data=None):
     os.makedirs(os.path.dirname(os.path.abspath(smiles_file)), exist_ok=True)
     df = pd.DataFrame(smiles, columns=["smiles"])
     if add_inchikeys:
-        df["inchikey"] = df.apply(lambda row: get_inchikey(row["smiles"]), axis=1)
+        if df.empty:
+            df["inchikey"] = pd.Series(dtype=str)
+        else:
+            df["inchikey"] = df.apply(lambda row: get_inchikey(row["smiles"]), axis=1)
+        df["inchikey"] = df["inchikey"].fillna("").astype(str)
         if extra_data is not None:
-            extra_data = extra_data.drop("smiles", axis=1, errors="ignore")
+            extra_data = extra_data.copy().drop("smiles", axis=1, errors="ignore")
+            if "inchikey" not in extra_data.columns:
+                extra_data["inchikey"] = pd.Series(dtype=str)
+            extra_data["inchikey"] = extra_data["inchikey"].fillna("").astype(str)
             df = df.merge(extra_data, how="left", on="inchikey")
 
     df.to_csv(smiles_file, sep=",", index=False)

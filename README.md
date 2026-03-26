@@ -76,6 +76,8 @@ harvest train \
   --snakemake-args --config 'paths={output_dir: /absolute/path/to/output_dir, dataset: /absolute/path/to/dataset.smi}'
 ```
 
+For a step-by-step explanation of how input data moves through preprocessing, fold creation, dataset loading, and model training, see [README_training_data_flow.md](README_training_data_flow.md).
+
 ### Sample an unconditional CLM
 
 Sample an unconditional model:
