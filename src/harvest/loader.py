@@ -228,7 +228,9 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
         if not os.path.isdir(model_dir_path):
             raise NotADirectoryError(f"Model directory not found: {model_dir_path}")
 
+        dataset_name = "synthetic_lipopeptides_graph_conditioning"
         vocab_file_pattern = re.compile(f"train_{dataset_name}_SMILES_\d+.vocabulary")
+        # vocab_file_pattern = re.compile(f"train_{dataset_name}_SMILES_\d+.condition_vocab.json|train_{dataset_name}_SMILES_\d+.vocabulary")
         model_file_pattern = re.compile(f"{dataset_name}_SMILES_\d+_\d+_model.pt")
 
         # Find all vocab files in vocab_dir_path
@@ -240,6 +242,9 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
         model_files = [f for f in os.listdir(model_dir_path) if model_file_pattern.match(f)]
         if not model_files:
             raise FileNotFoundError(f"No model files found in: {model_dir_path}")
+        
+        # print(len(vocab_files))
+        # print(len(model_files))
         
         # Assert that we found same number of vocab and model files
         if len(vocab_files) != len(model_files):
