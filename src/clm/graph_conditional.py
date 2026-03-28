@@ -9,6 +9,7 @@ import os
 
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
 
 
 def _open_text(path: str, mode: str = "rt"):
@@ -385,6 +386,18 @@ class GraphConv(nn.Module):
         return out
 
 
+def global_add_pool(
+    x: torch.Tensor, batch: torch.Tensor, num_graphs: int
+) -> torch.Tensor:
+    """Sum-pool node embeddings into one embedding per graph."""
+    if num_graphs == 0:
+        return torch.empty((0, x.size(1)), dtype=x.dtype, device=x.device)
+
+    pooled = torch.zeros((num_graphs, x.size(1)), dtype=x.dtype, device=x.device)
+    pooled.index_add_(0, batch, x)
+    return pooled
+
+
 def global_mean_pool(
     x: torch.Tensor, batch: torch.Tensor, num_graphs: int
 ) -> torch.Tensor:
@@ -392,14 +405,41 @@ def global_mean_pool(
     if num_graphs == 0:
         return torch.empty((0, x.size(1)), dtype=x.dtype, device=x.device)
 
-    pooled = torch.zeros((num_graphs, x.size(1)), dtype=x.dtype, device=x.device)
-    pooled.index_add_(0, batch, x)
+    pooled = global_add_pool(x, batch, num_graphs)
     counts = torch.bincount(batch, minlength=num_graphs).clamp_min(1).unsqueeze(1)
     return pooled / counts
 
 
+def global_max_pool(
+    x: torch.Tensor, batch: torch.Tensor, num_graphs: int
+) -> torch.Tensor:
+    """Max-pool node embeddings into one embedding per graph."""
+    if num_graphs == 0:
+        return torch.empty((0, x.size(1)), dtype=x.dtype, device=x.device)
+
+    pooled = torch.full(
+        (num_graphs, x.size(1)),
+        fill_value=torch.finfo(x.dtype).min,
+        dtype=x.dtype,
+        device=x.device,
+    )
+    for graph_idx in range(num_graphs):
+        node_mask = batch == graph_idx
+        if node_mask.any():
+            pooled[graph_idx] = x[node_mask].max(dim=0).values
+    return pooled
+
+
 class BiosynthesisGraphEncoder(nn.Module):
-    """Encode condition graphs into fixed-width conditioning vectors."""
+    """
+    Encode condition graphs into fixed-width conditioning vectors.
+
+    This encoder preserves:
+    - residue identity through learned label embeddings
+    - graph-local context through message passing
+    - node order through a bidirectional sequence encoder over node order
+    - multiplicity through sum/mean/max multi-pooling plus an explicit size feature
+    """
 
     def __init__(
         self,
@@ -414,10 +454,21 @@ class BiosynthesisGraphEncoder(nn.Module):
             nn.Linear(label_emb_dim + 2, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
         )
         self.conv1 = GraphConv(hidden_dim, hidden_dim)
         self.conv2 = GraphConv(hidden_dim, hidden_dim)
-        self.out_proj = nn.Linear(hidden_dim, out_dim)
+        self.order_rnn = nn.GRU(
+            input_size=hidden_dim,
+            hidden_size=hidden_dim,
+            bidirectional=True,
+        )
+        readout_dim = (hidden_dim * 2 * 4) + 1
+        self.out_proj = nn.Sequential(
+            nn.Linear(readout_dim, hidden_dim * 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim * 2, out_dim),
+        )
 
     def _node_embeddings(self, data: ConditionGraphBatch) -> torch.Tensor:
         candidate_counts = data.candidate_ptr[1:] - data.candidate_ptr[:-1]
@@ -435,9 +486,40 @@ class BiosynthesisGraphEncoder(nn.Module):
         node_emb.index_add_(0, node_index, weighted)
         return torch.cat([node_emb, data.ambiguity], dim=1)
 
+    def _sequence_encode(
+        self, x: torch.Tensor, batch: torch.Tensor, num_graphs: int
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        counts = torch.bincount(batch, minlength=num_graphs)
+        sequences = list(torch.split(x, counts.tolist()))
+        padded = pad_sequence(sequences)
+        packed = pack_padded_sequence(
+            padded, counts.detach().cpu(), enforce_sorted=False
+        )
+        packed_output, hidden = self.order_rnn(packed)
+        padded_output, _ = pad_packed_sequence(packed_output)
+        ordered = torch.cat(
+            [
+                padded_output[:count, graph_idx, :]
+                for graph_idx, count in enumerate(counts.tolist())
+            ],
+            dim=0,
+        )
+        graph_hidden = hidden.transpose(0, 1).reshape(num_graphs, -1)
+        return ordered, graph_hidden, counts
+
     def forward(self, data: ConditionGraphBatch) -> torch.Tensor:
         x = self.node_mlp(self._node_embeddings(data))
         x = self.conv1(x, data.edge_index).relu()
         x = self.conv2(x, data.edge_index).relu()
-        pooled = global_mean_pool(x, data.batch, data.num_graphs)
+        x, graph_hidden, counts = self._sequence_encode(x, data.batch, data.num_graphs)
+        pooled = torch.cat(
+            [
+                global_add_pool(x, data.batch, data.num_graphs),
+                global_mean_pool(x, data.batch, data.num_graphs),
+                global_max_pool(x, data.batch, data.num_graphs),
+                graph_hidden,
+                torch.log1p(counts.float()).unsqueeze(1).to(x.device),
+            ],
+            dim=1,
+        )
         return self.out_proj(pooled)

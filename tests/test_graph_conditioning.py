@@ -2,10 +2,17 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import torch
 
 from clm.commands import create_training_sets, preprocess, sample_molecules_RNN, train_models_RNN
 from clm.functions import read_csv_file, set_seed
-from clm.graph_conditional import read_condition_vocab, read_graph_condition_file
+from clm.graph_conditional import (
+    BiosynthesisGraphEncoder,
+    ConditionGraphCollate,
+    graph_to_condition_graph,
+    read_condition_vocab,
+    read_graph_condition_file,
+)
 
 
 def _write_graph_dataset(path: Path) -> None:
@@ -57,6 +64,66 @@ def _write_graph_dataset(path: Path) -> None:
     with open(path, "w") as handle:
         for row in rows:
             handle.write(json.dumps(row) + "\n")
+
+
+def test_graph_encoder_tracks_order_and_multiplicity():
+    rows = [
+        {
+            "smiles": "CCO",
+            "condition_graph": {
+                "nodes": [
+                    {"id": 0, "name": "Ala"},
+                    {"id": 1, "name": "Tyr"},
+                    {"id": 2, "name": "Tyr"},
+                ],
+                "links": [{"source": 0, "target": 1}, {"source": 1, "target": 2}],
+            },
+        },
+        {
+            "smiles": "CCN",
+            "condition_graph": {
+                "nodes": [
+                    {"id": 0, "name": "Ala"},
+                    {"id": 1, "name": "Tyr"},
+                ],
+                "links": [{"source": 0, "target": 1}],
+            },
+        },
+        {
+            "smiles": "CCCO",
+            "condition_graph": {
+                "nodes": [
+                    {"id": 0, "name": "Tyr"},
+                    {"id": 1, "name": "Ala"},
+                    {"id": 2, "name": "Tyr"},
+                ],
+                "links": [{"source": 0, "target": 1}, {"source": 1, "target": 2}],
+            },
+        },
+    ]
+    labels = ["<UNK>", "Ala", "Tyr"]
+    name_to_idx = {name: idx for idx, name in enumerate(labels)}
+    collate = ConditionGraphCollate()
+    encoder = BiosynthesisGraphEncoder(
+        vocab_size=len(labels),
+        label_emb_dim=8,
+        hidden_dim=12,
+        out_dim=10,
+    )
+    encoder.eval()
+
+    batch = collate(
+        [
+            graph_to_condition_graph(row["condition_graph"], name_to_idx)
+            for row in rows
+        ]
+    )
+    with torch.no_grad():
+        encoded = encoder(batch)
+
+    assert encoded.shape == (3, 10)
+    assert not torch.allclose(encoded[0], encoded[1])
+    assert not torch.allclose(encoded[0], encoded[2])
 
 
 def test_graph_conditioned_preprocess_and_split(tmp_path):
