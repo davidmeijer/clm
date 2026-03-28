@@ -218,6 +218,7 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
     # Compile model configurations
     model_configs = []
 
+    # enum_factors = [10]  # quick fix
     for enum_factor in enum_factors:
         vocab_dir_path = os.path.join(model_dir, f"{enum_factor}", "prior", "inputs")
         model_dir_path = os.path.join(model_dir, f"{enum_factor}", "prior", "models")
