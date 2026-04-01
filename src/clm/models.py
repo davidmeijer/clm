@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from clm.graph_conditional import BiosynthesisGraphEncoder
+from clm.graph_conditional import BiosynthesisGraphEncoder, GraphConditionEncoding
 
 
 class RNN(nn.Module):
@@ -843,19 +843,188 @@ class GraphConditionalRNN(ConditionalRNN):
             hidden_dim=graph_hidden_dim,
             out_dim=graph_out_dim,
         )
+        self.attn_query = nn.Linear(self.hidden_size, self.hidden_size)
+        self.attn_key = nn.Linear(self.graph_encoder.order_rnn.hidden_size * 2, self.hidden_size)
+        self.attn_value = nn.Linear(
+            self.graph_encoder.order_rnn.hidden_size * 2, self.hidden_size
+        )
+        self.decoder = nn.Linear(
+            self.decoder.in_features + self.hidden_size,
+            self.vocabulary_size,
+        )
         self.to(self.device)
 
-    def _conditioning_to_descriptors(self, conditioning):
+    def _encode_conditioning(self, conditioning):
         if conditioning is None:
             raise AssertionError(
                 "conditioning data must be provided for a GraphConditionalRNN model"
             )
-        if isinstance(conditioning, torch.Tensor):
+        if isinstance(conditioning, GraphConditionEncoding):
             return conditioning.to(self.device)
+        if isinstance(conditioning, torch.Tensor):
+            return GraphConditionEncoding(descriptors=conditioning.to(self.device))
         if hasattr(conditioning, "to"):
             conditioning = conditioning.to(self.device)
-            return self.graph_encoder(conditioning)
+            return self.graph_encoder(conditioning, return_memory=True)
         raise TypeError(
-            "GraphConditionalRNN expects a ConditionGraphBatch or tensor "
+            "GraphConditionalRNN expects a GraphConditionEncoding, "
+            "ConditionGraphBatch, or tensor "
             f"conditioning input; got {type(conditioning).__name__}"
         )
+
+    def _conditioning_to_descriptors(self, conditioning):
+        return self._encode_conditioning(conditioning).descriptors
+
+    def _zero_hidden(self, n_sequences):
+        if self.rnn_type == "LSTM":
+            return (
+                torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(
+                    self.device
+                ),
+                torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(
+                    self.device
+                ),
+            )
+        return torch.zeros(self.n_layers, n_sequences, self.hidden_size).to(
+            self.device
+        )
+
+    def _attend(self, queries, conditioning):
+        if conditioning.memory is None or conditioning.mask is None:
+            return torch.zeros_like(queries)
+
+        queries = queries.transpose(0, 1)
+        memory = conditioning.memory
+        mask = conditioning.mask
+
+        projected_queries = self.attn_query(queries)
+        projected_keys = self.attn_key(memory)
+        scores = torch.matmul(projected_queries, projected_keys.transpose(1, 2))
+        scores = scores / math.sqrt(projected_queries.size(-1))
+        scores = scores.masked_fill(~mask.unsqueeze(1), torch.finfo(scores.dtype).min)
+
+        attn = F.softmax(scores, dim=-1)
+        values = self.attn_value(memory)
+        context = torch.matmul(attn, values)
+        return context.transpose(0, 1)
+
+    def _decoder_features(self, rnn_output, descriptors, conditioning):
+        if self.dropout.p > 0:
+            rnn_output = self.dropout(rnn_output)
+
+        if self.conditional_dec_l:
+            combined_embedding = self.conditional_to_dec(descriptors.float())
+            rnn_output = torch.cat([rnn_output, combined_embedding], axis=2).float()
+        elif self.conditional_dec:
+            rnn_output = torch.cat([rnn_output, descriptors], axis=2).float()
+
+        context = self._attend(rnn_output[:, :, : self.hidden_size], conditioning)
+        return torch.cat([rnn_output, context], axis=2).float()
+
+    def loss(self, batch):
+        padded, lengths, conditioning = batch
+        padded = padded.to(self.device)
+        conditioning = self._encode_conditioning(conditioning)
+        descriptors = conditioning.descriptors
+
+        embedded = self.embedding(padded)
+        if self.dropout.p > 0:
+            embedded = self.dropout(embedded)
+        descriptors_repeating = descriptors.unsqueeze(0).repeat(max(lengths), 1, 1)
+
+        if self.conditional_emb_l:
+            combined_embedding = self.conditional_to_emb(descriptors_repeating.float())
+            embedded = torch.cat([embedded, combined_embedding], axis=2).float()
+        elif self.conditional_emb:
+            embedded = torch.cat([embedded, descriptors_repeating], axis=2).float()
+
+        packed = pack_padded_sequence(embedded, lengths, enforce_sorted=False)
+        if self.conditional_h:
+            hidden = self.init_hidden(descriptors)
+            packed_output, _ = self.rnn(packed, hidden)
+        else:
+            packed_output, _ = self.rnn(packed)
+
+        padded_output, _ = pad_packed_sequence(packed_output)
+        decoder_features = self._decoder_features(
+            padded_output, descriptors_repeating, conditioning
+        )
+        decoded = self.decoder(decoder_features)
+
+        loss = 0.0
+        max_len = max(lengths)
+        targets = padded[1:, :]
+        for char_idx in range(max_len - 1):
+            loss += self.loss_fn(decoded[char_idx], targets[char_idx])
+        return loss.mean()
+
+    def sample(
+        self,
+        *,
+        descriptors=None,
+        n_sequences=None,
+        max_len=250,
+        return_smiles=True,
+        return_losses=False,
+    ):
+        conditioning = self._encode_conditioning(descriptors)
+        descriptors = conditioning.descriptors
+        assert (
+            n_sequences is None or len(descriptors) == n_sequences
+        ), "When providing conditioning values, either omit n_sequences or make them conform to the number of conditions"
+
+        start_token = self.vocabulary.dictionary["SOS"]
+        stop_token = self.vocabulary.dictionary["EOS"]
+        pad_token = self.vocabulary.dictionary["<PAD>"]
+
+        n_sequences = len(descriptors)
+        inputs = (
+            torch.empty(n_sequences)
+            .fill_(start_token)
+            .long()
+            .view(1, n_sequences)
+            .to(self.device)
+        )
+
+        if self.conditional_h:
+            hidden = self.init_hidden(descriptors)
+        else:
+            hidden = self._zero_hidden(n_sequences)
+
+        descriptors = descriptors.view(1, n_sequences, descriptors.shape[1])
+        loss = nn.NLLLoss(reduction="none", ignore_index=pad_token)
+
+        finished = torch.zeros(n_sequences).byte().to(self.device)
+        log_probs = torch.zeros(n_sequences).to(self.device)
+        sequences = []
+        for _ in range(max_len):
+            embedded = self.embedding(inputs)
+            if self.conditional_emb_l:
+                combined_embedding = self.conditional_to_emb(descriptors.float())
+                embedded = torch.cat([embedded, combined_embedding], axis=2).float()
+            elif self.conditional_emb:
+                embedded = torch.cat([embedded, descriptors], axis=2).float()
+
+            output, hidden = self.rnn(embedded, hidden)
+            decoder_features = self._decoder_features(output, descriptors, conditioning)
+            logits = self.decoder(decoder_features)
+            prob = F.softmax(logits, dim=2)
+            inputs = torch.multinomial(prob.squeeze(0), num_samples=1).view(1, -1)
+            sequences.append(inputs.view(-1, 1))
+            log_prob = F.log_softmax(logits.squeeze(0), dim=1)
+            losses = loss(log_prob, inputs.squeeze(0))
+            losses[finished.squeeze(0).bool()] = 0
+            log_probs += losses
+            finished = torch.ge(finished + (inputs == stop_token), 1)
+            if torch.prod(finished) == 1:
+                break
+
+        seqs = torch.cat(sequences, 1)
+        if return_smiles:
+            smiles = [self.vocabulary.decode(seq.cpu().numpy()) for seq in seqs]
+        else:
+            smiles = sequences
+
+        if return_losses:
+            return smiles, log_probs.detach().cpu().numpy()
+        return smiles

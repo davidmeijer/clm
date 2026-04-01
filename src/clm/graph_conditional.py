@@ -263,6 +263,22 @@ class ConditionGraphBatch:
         )
 
 
+@dataclass
+class GraphConditionEncoding:
+    """Encoded graph conditioning used by the attentive graph decoder."""
+
+    descriptors: torch.Tensor
+    memory: torch.Tensor | None = None
+    mask: torch.Tensor | None = None
+
+    def to(self, device):
+        return GraphConditionEncoding(
+            descriptors=self.descriptors.to(device),
+            memory=self.memory.to(device) if self.memory is not None else None,
+            mask=self.mask.to(device) if self.mask is not None else None,
+        )
+
+
 def graph_to_condition_graph(graph_data: dict, name_to_idx: dict[str, int]) -> ConditionGraph:
     """Convert a JSON graph into packed tensors."""
     nodes, edges = _extract_nodes_and_edges(graph_data)
@@ -488,7 +504,7 @@ class BiosynthesisGraphEncoder(nn.Module):
 
     def _sequence_encode(
         self, x: torch.Tensor, batch: torch.Tensor, num_graphs: int
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         counts = torch.bincount(batch, minlength=num_graphs)
         sequences = list(torch.split(x, counts.tolist()))
         padded = pad_sequence(sequences)
@@ -497,6 +513,12 @@ class BiosynthesisGraphEncoder(nn.Module):
         )
         packed_output, hidden = self.order_rnn(packed)
         padded_output, _ = pad_packed_sequence(packed_output)
+        memory = padded_output.transpose(0, 1).contiguous()
+        max_nodes = memory.size(1)
+        mask = (
+            torch.arange(max_nodes, device=batch.device).unsqueeze(0)
+            < counts.unsqueeze(1)
+        )
         ordered = torch.cat(
             [
                 padded_output[:count, graph_idx, :]
@@ -505,13 +527,17 @@ class BiosynthesisGraphEncoder(nn.Module):
             dim=0,
         )
         graph_hidden = hidden.transpose(0, 1).reshape(num_graphs, -1)
-        return ordered, graph_hidden, counts
+        return ordered, graph_hidden, counts, memory, mask
 
-    def forward(self, data: ConditionGraphBatch) -> torch.Tensor:
+    def forward(
+        self, data: ConditionGraphBatch, return_memory: bool = False
+    ) -> torch.Tensor | GraphConditionEncoding:
         x = self.node_mlp(self._node_embeddings(data))
         x = self.conv1(x, data.edge_index).relu()
         x = self.conv2(x, data.edge_index).relu()
-        x, graph_hidden, counts = self._sequence_encode(x, data.batch, data.num_graphs)
+        x, graph_hidden, counts, memory, mask = self._sequence_encode(
+            x, data.batch, data.num_graphs
+        )
         pooled = torch.cat(
             [
                 global_add_pool(x, data.batch, data.num_graphs),
@@ -522,4 +548,11 @@ class BiosynthesisGraphEncoder(nn.Module):
             ],
             dim=1,
         )
-        return self.out_proj(pooled)
+        descriptors = self.out_proj(pooled)
+        if return_memory:
+            return GraphConditionEncoding(
+                descriptors=descriptors,
+                memory=memory,
+                mask=mask,
+            )
+        return descriptors
