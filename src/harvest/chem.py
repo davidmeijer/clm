@@ -1,5 +1,7 @@
 """Cheminformatics utility functions."""
 
+import numpy as np
+
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from rdkit.Chem.AllChem import GetMorganGenerator
@@ -33,17 +35,22 @@ def mol_to_weight(mol: Chem.Mol) -> float:
     return Descriptors.MolWt(mol)
 
 
-def mol_to_morgan_fp(mol: Chem.Mol, radius: int = 2, n_bits: int = 2048) -> ExplicitBitVect:
+def mol_to_morgan_fp(mol: Chem.Mol, radius: int = 2, n_bits: int = 2048, as_array: bool = False) -> ExplicitBitVect:
     """
     Calculate the Morgan fingerprint of a molecule.
 
     :param mol: RDKit Mol object to calculate fingerprint for
     :param radius: radius of the Morgan fingerprint
     :param n_bits: number of bits in the fingerprint
-    :return: Morgan fingerprint as an ExplicitBitVect
+    :param as_array: whether to return the fingerprint as a numpy array (default: False)
+    :return: Morgan fingerprint as an ExplicitBitVect or numpy array
     """
     fp_gen = GetMorganGenerator(radius=radius, fpSize=n_bits, includeChirality=False)
     fp = fp_gen.GetFingerprint(mol)
+    if as_array:
+        arr = np.zeros((1,), dtype=int)
+        Chem.DataStructs.ConvertToNumpyArray(fp, arr)
+        return arr
     return fp
 
 

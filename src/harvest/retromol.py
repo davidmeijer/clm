@@ -69,7 +69,13 @@ def cmd_run_retromol(
 
     # Setup table streamer
     chunksize = 20_000
-    source_iter = stream_table_rows(data_path, sep=",", chunksize=chunksize)
+    seps = {
+        ".csv": ",",
+        ".tsv": "\t",
+    }
+    sep = seps.get(os.path.splitext(data_path)[1], "\t")  # default to tab if extension not recognized
+    print(f"Using separator '{sep}' for input file {data_path}")
+    source_iter = stream_table_rows(data_path, sep=sep, chunksize=chunksize)
 
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "retromol_results.jsonl")

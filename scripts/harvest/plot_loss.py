@@ -9,6 +9,9 @@ args = parser.parse_args()
 df = pd.read_csv(args.csv)
 print(df.head())
 
+# remove last row
+df = df[:-1]
+
 # head of data:
 #    epoch  minibatch          outcome      value
 # 0    1.0        100    training loss  94.216507
@@ -23,7 +26,7 @@ for outcome in df["outcome"].unique():
     plt.plot(subset["minibatch"], subset["value"], label=outcome)
 plt.xlabel("Minibatch")
 plt.ylabel("Loss")
-plt.title("Training and Validation Loss Over Minibatches")
+plt.title("Training and validation loss over minibatches")
 plt.legend()
 plt.grid()
 plt.tight_layout()
