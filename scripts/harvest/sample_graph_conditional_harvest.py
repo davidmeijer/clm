@@ -88,11 +88,11 @@ new_graph = {
 # }
 
 DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
-N_SAMPLES = 100_000
+N_SAMPLES = 30_000
 
 target_smi = r"CCC(C)CCCCCCCCC(CC(NC(C(NC(COC1=O)C(NC(CC2=CC=C(O)C=C2)C(NCC(NC(C(NC(C(NC(C(NC(C(NC(CC(O)=O)C(NC(C(O)C)C(NC(CC3=CC=C(O)C=C3)C(NC1CC(O)=O)=O)=O)=O)=O)CC4=CC=C(O)C=C4)=O)CO)=O)C(C)C)=O)CCC(N)=O)=O)=O)=O)=O)C(C)C)=O)O"
 target_mol = smiles_to_mol(target_smi)
-fp1 = mol_to_morgan_fp(target_mol, radius=2, n_bits=2048)
+fp1 = mol_to_morgan_fp(target_mol, radius=3, n_bits=2048)
 
 
 def cli() -> argparse.Namespace:
@@ -105,7 +105,7 @@ def cli() -> argparse.Namespace:
 def main() -> None:
     args = cli()
     model_cfgs = prep_clm(model_dir=Path(args.data_dir), eval=True)
-    cfg = model_cfgs[2]  # or choose the fold/model you want explicitly
+    cfg = model_cfgs[0]  # or choose the fold/model you want explicitly
 
     model = cfg.load_model(device=DEVICE)
     model.eval()

@@ -25,3 +25,4 @@ src/clm/_version.py
 
 # VS Code
 .vscode/
+.snakemake/

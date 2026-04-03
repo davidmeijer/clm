@@ -4,12 +4,13 @@ import tempfile
 import hashlib
 import logging
 import gzip
+import yaml
 import clm  # noqa: F401 (imported to enable logging configuration)
 
 
 base_dir = Path(__file__).parent.parent
 
-config_file = base_dir / "workflow/config/config_fast.yaml"
+config_file = base_dir / "workflow/config/template_config_fast.yaml"
 dataset = base_dir / "tests/test_data/LOTUS_truncated.txt"
 pubchem_tsv_file = base_dir / "tests/test_data/PubChem_truncated.tsv"
 
@@ -30,10 +31,12 @@ def test_snakemake():
                 "pubchem_tsv_file": pubchem_tsv_file,
                 "output_dir": temp_dir,
             },
+            "max_input_smiles": 1234,
         },
         dryrun=False,
         latency_wait=60,
         forceall=True,
+        scheduler="greedy",
         verbose=True,
         printshellcmds=True,
     )
@@ -60,3 +63,11 @@ def test_snakemake():
         ).encode("utf8")
     ).hexdigest()
     assert checksum == "64888257bf9d1cf836afdc99fb839fbf"
+
+    config_copy = Path(temp_dir) / "prior" / "raw" / "LOTUS_truncated_config.yaml"
+    with open(config_copy) as handle:
+        saved_config = yaml.safe_load(handle)
+
+    assert saved_config["paths"]["output_dir"] == temp_dir
+    assert saved_config["paths"]["dataset"] == str(dataset)
+    assert saved_config["max_input_smiles"] == 1234

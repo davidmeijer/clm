@@ -125,7 +125,10 @@ class ModelConfig:
         return model
 
 
-def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
+def prep_clm(
+    model_dir: Path | str,
+    eval: bool = False
+) -> list[ModelConfig]:
     """
     Compile all relevant information for loading a CLM from file.
 
@@ -218,7 +221,6 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
     # Compile model configurations
     model_configs = []
 
-    enum_factors = [10]
     for enum_factor in enum_factors:
         vocab_dir_path = os.path.join(model_dir, f"{enum_factor}", "prior", "inputs")
         model_dir_path = os.path.join(model_dir, f"{enum_factor}", "prior", "models")
@@ -277,7 +279,8 @@ def prep_clm(model_dir: Path | str, eval: bool = False) -> list[ModelConfig]:
                 )
 
             # Find test dataset file
-            test_path = os.path.join(model_dir, str(enum_factor), "prior", "inputs", f"test0_{dataset_name}_SMILES_{split}.smi")
+            # test_path = os.path.join(model_dir, str(enum_factor), "prior", "inputs", f"test0_{dataset_name}_SMILES_{split}.smi")
+            test_path = os.path.join(model_dir, str(enum_factor), "prior", "inputs", f"test_condition_{dataset_name}_SMILES_{split}.jsonl")
             if not os.path.exists(test_path):
                 raise FileNotFoundError(f"Test dataset file not found: {test_path}")
 
