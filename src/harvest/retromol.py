@@ -69,7 +69,13 @@ def cmd_run_retromol(
 
     # Setup table streamer
     chunksize = 20_000
-    source_iter = stream_table_rows(data_path, sep=",", chunksize=chunksize)
+    if data_path.endswith(".csv"):
+        sep = ","
+    elif data_path.endswith(".tsv") or data_path.endswith(".txt"):
+        sep = "\t"
+    else:
+        raise ValueError(f"Unsupported file extension for data_path: {data_path}")
+    source_iter = stream_table_rows(data_path, sep=sep, chunksize=chunksize)
 
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "retromol_results.jsonl")

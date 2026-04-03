@@ -7,11 +7,13 @@ import sys
 import shlex
 import subprocess
 import logging
+import yaml
 
 from harvest.retromol import cmd_run_retromol
 from harvest.version import __version__
 from harvest.sample import cmd_sample_unconditional
-from harvest.train import cmd_train_model
+from harvest.train import cmd_train_model, _resolve_workflow_paths
+from harvest.validation import cmd_validate
 
 
 _SLURM_FLAGS_WITH_VALUE = {
@@ -58,6 +60,106 @@ def _strip_slurm_flags(argv: list[str]) -> list[str]:
     return cleaned
 
 
+def _resolve_output_dir_path(
+    output_dir: str, slurm_args: argparse.Namespace
+) -> str:
+    """Resolve a configured output directory to an absolute path."""
+    if os.path.isabs(output_dir):
+        return os.path.abspath(output_dir)
+
+    if getattr(slurm_args, "cmd", None) == "train" and getattr(
+        slurm_args, "configfile", None
+    ):
+        try:
+            _, workflow_dir, _ = _resolve_workflow_paths(
+                configfile=slurm_args.configfile,
+                workflow_dir=getattr(slurm_args, "workflow_dir", None),
+                snakefile=getattr(slurm_args, "snakefile", None),
+            )
+            return str((workflow_dir / output_dir).resolve())
+        except FileNotFoundError:
+            pass
+
+    return os.path.abspath(output_dir)
+
+
+def _extract_output_dir_from_config_entry(entry: str) -> str | None:
+    """Return output_dir from a single Snakemake --config entry if present."""
+    if "=" not in entry:
+        return None
+
+    key, value = entry.split("=", 1)
+    key = key.strip()
+    value = value.strip()
+
+    if key == "paths.output_dir" and value:
+        return value
+
+    if key != "paths" or not value:
+        return None
+
+    try:
+        parsed = yaml.safe_load(value)
+    except yaml.YAMLError:
+        return None
+
+    if isinstance(parsed, dict):
+        output_dir = parsed.get("output_dir")
+        if output_dir:
+            return str(output_dir)
+
+    return None
+
+
+def _extract_train_output_dir(slurm_args: argparse.Namespace) -> str | None:
+    """Resolve train output_dir from Snakemake overrides or the train config YAML."""
+    snakemake_args = getattr(slurm_args, "snakemake_args", None) or []
+
+    for idx, arg in enumerate(snakemake_args):
+        if arg != "--config":
+            continue
+        config_idx = idx + 1
+        while config_idx < len(snakemake_args) and not snakemake_args[
+            config_idx
+        ].startswith("--"):
+            output_dir = _extract_output_dir_from_config_entry(
+                snakemake_args[config_idx]
+            )
+            if output_dir:
+                return _resolve_output_dir_path(output_dir, slurm_args)
+            config_idx += 1
+
+    configfile = getattr(slurm_args, "configfile", None)
+    if not configfile:
+        return None
+
+    try:
+        with open(configfile) as handle:
+            config = yaml.safe_load(handle) or {}
+    except (OSError, yaml.YAMLError):
+        return None
+
+    output_dir = config.get("paths", {}).get("output_dir")
+    if not output_dir:
+        return None
+
+    return _resolve_output_dir_path(str(output_dir), slurm_args)
+
+
+def _slurm_output_dir(slurm_args: argparse.Namespace) -> str:
+    """Pick the output directory used for Slurm wrapper logs."""
+    out_dir = getattr(slurm_args, "out_dir", None)
+    if out_dir:
+        return os.path.abspath(out_dir)
+
+    if getattr(slurm_args, "cmd", None) == "train":
+        train_output_dir = _extract_train_output_dir(slurm_args)
+        if train_output_dir:
+            return train_output_dir
+
+    return os.path.abspath(os.getcwd())
+
+
 def _submit_via_slurm(slurm_args: argparse.Namespace, cli_argv: list[str]) -> None:
     """
     Submit the current Harvest command to Slurm using sbatch.
@@ -67,8 +169,8 @@ def _submit_via_slurm(slurm_args: argparse.Namespace, cli_argv: list[str]) -> No
     """
     python = sys.executable
 
-    # Get output directory from CLI args (fallback to cwd for commands without --out-dir)
-    output_dir = os.path.abspath(getattr(slurm_args, "out_dir", os.getcwd()))
+    # Resolve wrapper log location from the explicit out_dir or train config overrides.
+    output_dir = _slurm_output_dir(slurm_args)
 
     # Ensure log directory exists
     os.makedirs(os.path.join(output_dir, "logs"), exist_ok=True)
@@ -207,6 +309,22 @@ def cli(argv: list[str] | None = None) -> argparse.Namespace:
         batch_size=args.batch_size,
         pool_chunksize=args.pool_chunksize,
         maxtasksperchild=args.maxtasksperchild,
+    ))
+
+    # Subparser for validating a trained model (uses cross-validation splits)
+    pr = sub.add_parser("validate", parents=[common], help="validate a trained CLM using cross-validation splits")
+    pr.add_argument("--model-dir", type=str, required=True, help="path to dir trained CLM with cross-validation splits")
+    pr.add_argument("--device", type=str, default="cpu", help="device to run validation on (e.g., 'cuda:0' or 'cpu')")
+    pr.add_argument("--test-size", type=int, default=1000, help="number of test samples to evaluate per model configuration (default: 1000)")
+    pr.add_argument("--sample-size", type=int, default=100_000, help="number of samples to generate for each test sample (default: 100,000)")
+    pr.add_argument("--batch-size", type=int, default=64, help="number of molecules to generate per validation sampling batch (default: 64)")
+    pr.set_defaults(func=lambda args: cmd_validate(
+        model_dir=args.model_dir,
+        out_dir=args.out_dir,
+        device=args.device,
+        test_size=args.test_size,
+        sample_size=args.sample_size,
+        batch_size=args.batch_size,
     ))
 
     args = parser.parse_args(argv)
