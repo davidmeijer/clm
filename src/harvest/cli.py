@@ -317,12 +317,14 @@ def cli(argv: list[str] | None = None) -> argparse.Namespace:
     pr.add_argument("--device", type=str, default="cpu", help="device to run validation on (e.g., 'cuda:0' or 'cpu')")
     pr.add_argument("--test-size", type=int, default=1000, help="number of test samples to evaluate per model configuration (default: 1000)")
     pr.add_argument("--sample-size", type=int, default=100_000, help="number of samples to generate for each test sample (default: 100,000)")
+    pr.add_argument("--batch-size", type=int, default=64, help="number of molecules to generate per validation sampling batch (default: 64)")
     pr.set_defaults(func=lambda args: cmd_validate(
         model_dir=args.model_dir,
         out_dir=args.out_dir,
         device=args.device,
         test_size=args.test_size,
         sample_size=args.sample_size,
+        batch_size=args.batch_size,
     ))
 
     args = parser.parse_args(argv)

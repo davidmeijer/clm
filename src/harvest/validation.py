@@ -4,6 +4,7 @@ import os
 import json
 from collections import Counter
 
+import torch
 from tqdm import tqdm
 from rdkit import RDLogger
 
@@ -44,7 +45,7 @@ def cmd_validate(
     device: str,
     test_size: int = 1000,
     sample_size: int = 100_000,
-    batch_size: int = 1000,
+    batch_size: int = 64,
     fp_radius: int = 3,
     fp_n_bits: int = 2048,
 ) -> None:
@@ -56,6 +57,7 @@ def cmd_validate(
     :param device: Device to run validation on (e.g., 'cuda:0' or 'cpu').
     """
     os.makedirs(out_dir, exist_ok=True)
+    device = torch.device(device)
 
     model_cfgs = prep_clm(model_dir=Path(model_dir), eval=True)
     log.info(f"Found {len(model_cfgs)} model configurations for validation.")
@@ -122,11 +124,12 @@ def cmd_validate(
                         ]
                     )
 
-                    generated_smiles = model.sample(
-                        descriptors=graph_batch,
-                        n_sequences=to_sample,
-                        max_len=250,
-                    )
+                    with torch.inference_mode():
+                        generated_smiles = model.sample(
+                            descriptors=graph_batch,
+                            n_sequences=to_sample,
+                            max_len=250,
+                        )
 
                     for gen_smi in generated_smiles:
                         try: 
@@ -143,6 +146,11 @@ def cmd_validate(
                                 ik_to_repr_score[ik_conn] = score
                         except Exception:
                             continue
+
+                    del graph_batch
+                    del generated_smiles
+                    if device.type == "cuda":
+                        torch.cuda.empty_cache()
                     
                 # true compound every generated? any score 1.0
                 true_generated = any(score == 1.0 for score in ik_to_repr_score.values())
@@ -165,6 +173,10 @@ def cmd_validate(
 
                 # flush so results are written incrementally
                 out_file.flush()
+
+            del model
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
 
 
     # create for every enum the splits
